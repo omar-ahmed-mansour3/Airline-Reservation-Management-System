@@ -29,13 +29,8 @@ Passenger(int id, std::string uname, std::string pwd, std::string name,
     //************overriden functions************* */
 
     void showProfile() const override;
-    void displayWindow() const override;
     std::string getRole() const override;
     
-    //**i don't think we will need to override, just implement them in user */
-    void searchFlights() override;
-    void manageBooking() override;
-    //**i don't think we will need to override, just implement them in user */
 
     //************class specific functions************************* */
     void makeReservation();//  Initiates the booking process for a selected flight.

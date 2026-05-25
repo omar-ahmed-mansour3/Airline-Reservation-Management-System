@@ -37,16 +37,13 @@ public:
     void set_email(const std::string& mail);
     
 //************ Pure Virtual functions **************************** */
-    virtual void displayWindow() const =0;
+
     virtual std::string getRole() const = 0;
 
 
 //************Virtual functions **************************** */
     
     virtual void showProfile() const;
-    virtual void searchFlights();
-    virtual void manageBooking();
-
 
 };
 

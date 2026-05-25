@@ -22,15 +22,9 @@ class BookingAdmin : public User
 
 
     //************overriden functions************* */
-    void displayWindow () const override ;
+
     std::string getRole() const override;
     void showProfile() const override;
-
-    //**i don't think we will need to override, just implement them in user */
-    void searchFlights() override;
-    void manageBooking() override;
-    //**i don't think we will need to override, just implement them in user */
-
 
 
 

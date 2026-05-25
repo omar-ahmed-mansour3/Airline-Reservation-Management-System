@@ -21,14 +21,9 @@ class Administrators : public User
 
 
     //************overriden functions************* */
-    void displayWindow () const override;//: Must show administrative options "Add/Remove Flight," "Manage Users," and "View Maintenance Logs"
+
     std::string getRole() const override;
     void showProfile() const override;
-
-    //**i don't think we will need to override, just implement them in user */
-    void searchFlights() override;
-    void manageBooking() override;
-    //**i don't think we will need to override, just implement them in user */
 
 
     //************class specific functions************************* */
