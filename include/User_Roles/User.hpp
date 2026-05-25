@@ -21,8 +21,21 @@ public:
     User(const User& other);
     User& operator=(const User& other);
 
-
+    //getters
+    int get_userid() const;
+    const std::string& get_username() const;
+    const std::string& get_password() const;
     std::string getFullName() const;
+    const std::string& get_Phone() const;
+    const std::string& get_email() const;
+    //setters
+    void set_userid(int id);
+    void set_username(const std::string& uname);
+    void set_password(const std::string& pass);
+    void set_full_name(const std::string& fname);
+    void set_Phone(const std::string& phone_num);
+    void set_email(const std::string& mail);
+    
 //************ Pure Virtual functions **************************** */
     virtual void displayWindow() const =0;
     virtual std::string getRole() const = 0;
