@@ -1,6 +1,6 @@
 #ifndef ADMINSTRATORS_H
 #define ADMINSTRATORS_H
-#include<User.hpp>
+#include "User.hpp"
 
 class Administrators : public User
 { 
@@ -26,13 +26,5 @@ class Administrators : public User
     void showProfile() const override;
 
 
-    //************class specific functions************************* */
-
-    void manageUsers(); //The entry point for creating, updating, or deleting user accounts.
-    void manageFlights();
-    void manageAircraft();
-    void manageCrew();
-    void viewReports();
-    void scheduleMaintenance();//might evolve into 2 functions 
 };
 #endif

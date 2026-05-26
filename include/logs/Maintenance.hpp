@@ -2,7 +2,7 @@
 #define MAINTENANCE_H
 #include<string>
 
-enum Status
+enum class MaintenanceStatus
 {
     Scheduled, InProgress, Completed
 };
@@ -14,13 +14,13 @@ private:
     std::string scheduleDate;
     std::string completionDate;
     std::string description;
-    Status status;
+    MaintenanceStatus status;
 
 public:
 
 //**********rule of 5******************/
     Maintenance(std::string maintenanceID, std::string scheduleDate, std::string completionDate,
-        std::string description, Status status);
+        std::string description, MaintenanceStatus status);
 
     Maintenance(const Maintenance& other);
 
@@ -32,13 +32,13 @@ public:
     std::string getScheduleDate() const;
     std::string getCompletionDate() const;
     std::string getDescription() const;
-    Status getStatus() const;
+    MaintenanceStatus getStatus() const;
 
     void setMaintenanceID(const std::string& id);
     void setScheduleDate(const std::string& sDate);
     void setCompletionDate(const std::string& cDate);
     void setDescription(const std::string& desc);
-    void setStatus(Status newStatus);
+    void setStatus(MaintenanceStatus newStatus);
 
 //************class specific functions************************* */
 void completeMaintenance(std::string finishDate);

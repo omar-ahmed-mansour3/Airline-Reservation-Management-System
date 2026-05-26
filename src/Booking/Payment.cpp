@@ -7,7 +7,7 @@ Payment::Payment(std::string txID, double amt, PaymentMethod payMethod, std::str
     : transactionID(std::move(txID)),
       amount(amt >= 0.0 ? amt : 0.0), // Prevents negative payments
       method(payMethod),
-      status(Pending),                
+      status(PaymentStatus::Pending),                
       timestamp(std::move(time))
 {}
 
@@ -70,11 +70,11 @@ PaymentStatus Payment::getStatus() const
 std::string Payment::getStatusString() const 
 {
     switch (this->status) {
-        case Pending:   return "Pending";
-        case Completed: return "Completed";
-        case Failed:    return "Failed";
-        case Refunded:  return "Refunded";
-        default:        return "Unknown";
+        case PaymentStatus::Pending:   return "Pending";
+        case PaymentStatus::Completed: return "Completed";
+        case PaymentStatus::Failed:    return "Failed";
+        case PaymentStatus::Refunded:  return "Refunded";
+        default:                       return "Unknown";
     }
 }
 
@@ -126,7 +126,7 @@ void Payment::setTimestamp(const std::string& time)
 
 bool Payment::processPayment() 
 {
-    if (this->status == Completed) 
+    if (this->status == PaymentStatus::Completed) 
     {
         std::cout << "[INFO] Transaction " << this->transactionID << " has already been paid." << std::endl;
         return false;
@@ -139,13 +139,13 @@ bool Payment::processPayment()
 
     if (paymentSuccessful) 
     {
-        this->status = Completed;
+        this->status = PaymentStatus::Completed;
         std::cout << "[SUCCESS] Payment of $" << this->amount << " completed." << std::endl;
         return true;
     } 
     else 
     {
-        this->status = Failed;
+        this->status = PaymentStatus::Failed;
         std::cout << "[ERROR] Payment was declined or failed to process." << std::endl;
         return false;
     }
@@ -154,14 +154,14 @@ bool Payment::processPayment()
 // What it does: Reverses a completed charge
 bool Payment::processRefund() 
 {
-    if (this->status != Completed) 
+    if (this->status != PaymentStatus::Completed) 
     {
         std::cout << "[ERROR] Cannot refund transaction " << this->transactionID << ". Status is: " << this->getStatusString() << "." << std::endl;
         return false;
     }
 
     std::cout << "Processing refund of $" << this->amount << " to " << this->getMethodString() << "..." << std::endl;
-    this->status = Refunded;
+    this->status = PaymentStatus::Refunded;
     std::cout << "[SUCCESS] Refund completed successfully." << std::endl;
     return true;
 }

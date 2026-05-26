@@ -1,6 +1,6 @@
 #ifndef BOOKINGADMIN_H
 #define BOOKINGADMIN_H
-#include<User.hpp>
+#include "User.hpp"
 class BookingAdmin : public User
 {
 
@@ -20,18 +20,12 @@ class BookingAdmin : public User
 
 
 
-
     //************overriden functions************* */
 
     std::string getRole() const override;
     void showProfile() const override;
 
 
-
-
-    //************class specific functions**************/
-    void processPayment();
-    void airportCheckIn();
 };
 
 #endif

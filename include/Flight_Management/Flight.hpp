@@ -4,7 +4,7 @@
 #include <memory>
 #include"CrewMember.hpp"
 #include<vector>
-enum FlightStatus {
+enum class FlightStatus {
     Scheduled,
     Delayed,
     Boarding,

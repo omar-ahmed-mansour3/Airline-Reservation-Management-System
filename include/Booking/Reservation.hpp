@@ -4,9 +4,9 @@
 #include"Flight.hpp"
 #include"User.hpp"
 #include"Payment.hpp"
-enum BookingStatus
+enum class BookingStatus
 {
-    Confirmed , Refunded,Canceled ,PendingPayment
+    Confirmed, Refunded, Canceled, PendingPayment
 };
 class Reservation
 {

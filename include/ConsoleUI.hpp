@@ -4,6 +4,9 @@
 #include"Passenger.hpp"
 #include"BookingAdmin.hpp"
 #include"Administrators.hpp"
+#include "Flight.hpp"
+#include "Aircraft.hpp"
+#include "Maintenance.hpp"
 
 class ConsoleUI {
 private:
@@ -19,6 +22,11 @@ private:
     void displayAdminMenu();     
     void displayPassengerMenu(); 
     void displayBookingAgentMenu(); 
+
+//*************Admin Functions *************/
+void handleFlightManagement();
+void handleFleetManagement();
+void handleCrewAssignment();
 
 
 public:

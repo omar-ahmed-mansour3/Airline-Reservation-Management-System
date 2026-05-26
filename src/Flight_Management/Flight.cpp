@@ -205,10 +205,11 @@ void Flight::displayFlightDetails() const
     std::string statusStr;
     switch (this->status)
     {
-        case Status::Scheduled:  statusStr = "Scheduled"; break;
-        case Status::InProgress: statusStr = "In Progress"; break;
-        case Status::Completed:  statusStr = "Completed"; break;
-        default:                 statusStr = "Unknown"; break;
+        case FlightStatus::Scheduled: statusStr = "Scheduled"; break;
+        case FlightStatus::Delayed:   statusStr = "Delayed";   break;
+        case FlightStatus::Boarding:  statusStr = "Boarding";  break;
+        case FlightStatus::Canceled:  statusStr = "Canceled";  break;
+        default:                      statusStr = "Unknown";   break;
     }
 
     std::cout << "\n=============================================" << std::endl;

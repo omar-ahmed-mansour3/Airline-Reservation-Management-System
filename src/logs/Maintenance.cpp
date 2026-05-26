@@ -5,7 +5,7 @@
 
 
 Maintenance::Maintenance(std::string maintenanceID, std::string scheduleDate, std::string completionDate,
-                         std::string description, Status status)
+                         std::string description, MaintenanceStatus status)
     : maintenanceID(maintenanceID),
       scheduleDate(scheduleDate),
       completionDate(completionDate == "" ? "N/A" : completionDate), //  defaults to "N/A"
@@ -63,7 +63,7 @@ std::string Maintenance::getDescription() const
     return this->description;
 }
 
-Status Maintenance::getStatus() const 
+MaintenanceStatus Maintenance::getStatus() const 
 {
     return this->status;
 }
@@ -88,7 +88,7 @@ void Maintenance::setDescription(const std::string& desc)
     this->description = desc;
 }
 
-void Maintenance::setStatus(Status newStatus) 
+void Maintenance::setStatus(MaintenanceStatus newStatus) 
 {
     this->status = newStatus;
 }
@@ -99,9 +99,9 @@ void Maintenance::setStatus(Status newStatus)
 
 void Maintenance::completeMaintenance(std::string finishDate)
 {
-    if (this->status == Scheduled || this->status == InProgress)
+    if (this->status == MaintenanceStatus::Scheduled || this->status == MaintenanceStatus::InProgress)
     {
-        this->status = Completed;
+        this->status = MaintenanceStatus::Completed;
         this->completionDate = finishDate;
     }
     else
@@ -117,9 +117,9 @@ void Maintenance::displayLog() const
     std::string statusStr;
     switch (this->status)
     {
-        case Status::Scheduled:  statusStr = "Scheduled"; break;
-        case Status::InProgress: statusStr = "In Progress"; break;
-        case Status::Completed:  statusStr = "Completed"; break;
+        case MaintenanceStatus::Scheduled:  statusStr = "Scheduled"; break;
+        case MaintenanceStatus::InProgress: statusStr = "In Progress"; break;
+        case MaintenanceStatus::Completed:  statusStr = "Completed"; break;
     }
 
     std::cout << "--- MAINTENANCE LOG [" << this->maintenanceID << "] ---" << std::endl;

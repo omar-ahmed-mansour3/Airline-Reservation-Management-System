@@ -35,27 +35,3 @@ void  Administrators:: showProfile() const
 }
 
 
-//************class specific functions************************* */
-
-// void Administrators ::manageUsers()
-// {
-//     int choice;
-//     bool validChoice= false;
-
-//     while(!validChoice)
-//     {
-//         std::cin>>choice;
-//         std::cout << "\n--- USER MANAGEMENT SUB-SYSTEM ---" << std::endl;
-//         std::cout << "Please choose a number\n";
-//         std::cout << "1. Create New User Account\n"
-//           << "2. View All Registered Users\n"
-//           << "3. Update Existing User Information\n"
-//           << "4. Delete a User Account\n"
-//           << "5. Return to Main Admin Menu" << std::endl;
-
-//         switch(choice)
-//         {
-
-//         }
-//     }
-// }

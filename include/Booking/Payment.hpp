@@ -12,7 +12,7 @@ enum PaymentMethod {
     Cash 
 };
 
-enum PaymentStatus {
+enum class PaymentStatus {
     Pending,
     Completed,
     Failed,
