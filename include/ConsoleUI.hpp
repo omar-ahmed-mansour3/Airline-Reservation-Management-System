@@ -29,10 +29,13 @@ void handleFleetManagement();
 void handleCrewAssignment();
 void handleUserManagement();
 void handleCreateUser();
+void handleMaintenanceManagement();
 
 //***********BOOKING FUNCTIONs***************/
 void handleFlightBooking();
 void handleBookingManagement();
+
+std::shared_ptr<User> resolvePassenger();
 
 public:
 

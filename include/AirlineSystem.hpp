@@ -48,6 +48,9 @@ public:
     void updateAircraftAvailability(std::string aircraftID, bool isAvailable);// only by admins
     void scheduleMaintenance(std::string aircraftID, const Maintenance& newLog);// only by admins
     void removeAircraft(std::string aircraftID);
+    void completeMaintenance(const std::string& aircraftID, const std::string& maintenanceID,
+         const std::string& completionDate);
+    void viewMaintenanceLogs(const std::string& aircraftID) const;
 
     //*************flights*********************************************/
 
@@ -88,6 +91,8 @@ public:
     std::vector<std::shared_ptr<Reservation>> getUserReservations(const std::string& username) const;
 
     bool cancelUserReservation(const std::string& bookingId);
+    
+    std::shared_ptr<User> getUserByUsername(const std::string& username) const;
 };
 
 

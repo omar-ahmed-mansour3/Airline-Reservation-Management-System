@@ -247,8 +247,9 @@ void ConsoleUI::displayAdminMenu()
                   << "3. Manage Flight Schedules\n"
                   << "4. Manage Aircraft & Fleet\n"
                   << "5. Assign Flight Crew\n"
-                  << "6. View Operational & Financial Reports\n"
-                  << "7. Logout & Exit System" << std::endl;
+                  << "6. Maintenance Management\n"      
+                  << "7. View Operational & Financial Reports\n"
+                  << "8. Logout & Exit System" << std::endl; 
 
         std::cin >> choice;
 
@@ -269,15 +270,18 @@ void ConsoleUI::displayAdminMenu()
             case 5: // Assign Crew
                 this->handleCrewAssignment();
                 break;
-            case 6: // View Reports
+            case 6: // Maintenance Management
+                this->handleMaintenanceManagement();
                 break;
-            case 7: // Logout
+            case 7: // View Reports
+                break;
+            case 8: // Logout
                 std::cout << "\n[SUCCESS] Master Admin console locked. Logged out safely." << std::endl;
                 this->loggedInUser = nullptr;
                 stayLoggedIn = false;
                 break;
             default:
-                std::cout << "\n[ERROR] Invalid choice! Please select a valid option (1-7)." << std::endl;
+                std::cout << "\n[ERROR] Invalid choice! Please select a valid option (1-8)." << std::endl;
                 break;
         }
     }
@@ -632,9 +636,66 @@ void ConsoleUI::handleCreateUser()
 }
 
 
+void ConsoleUI::handleMaintenanceManagement()
+{
+    int choice;
+    bool stayInMenu = true;
+
+    while (stayInMenu)
+    {
+        std::cout << "\n--- MAINTENANCE MANAGEMENT ---\n"
+                  << "1. Schedule Maintenance\n"
+                  << "2. Mark Maintenance Complete\n"
+                  << "3. View Maintenance Logs\n"
+                  << "4. Back\n"
+                  << "Choice: ";
+        std::cin >> choice;
+
+        if (choice == 1)
+        {
+            std::string id, mID, sDate, desc;
+            std::cout << "Aircraft ID: ";       std::cin >> id;
+            std::cout << "Maintenance ID: ";    std::cin >> mID;
+            std::cout << "Scheduled Date: ";    std::cin >> sDate;
+            std::cout << "Description: ";       
+            std::cin.ignore(); 
+            std::getline(std::cin, desc);
+
+            Maintenance log(mID, sDate, "", desc, MaintenanceStatus::Scheduled);
+            system.scheduleMaintenance(id, log);
+        }
+        else if (choice == 2)
+        {
+            std::string aircraftID, maintenanceID, completionDate;
+            std::cout << "Aircraft ID: ";        std::cin >> aircraftID;
+            std::cout << "Maintenance ID: ";     std::cin >> maintenanceID;
+            std::cout << "Completion Date: ";    std::cin >> completionDate;
+
+            system.completeMaintenance(aircraftID, maintenanceID, completionDate);
+        }
+        else if (choice == 3)
+        {
+            std::string aircraftID;
+            std::cout << "Aircraft ID: "; std::cin >> aircraftID;
+            system.viewMaintenanceLogs(aircraftID);
+        }
+        else if (choice == 4)
+        {
+            stayInMenu = false;
+        }
+        else
+        {
+            std::cout << "[ERROR] Invalid choice.\n";
+        }
+    }
+}
+
 //****************BOOKING FUNCTIONS*****************
 void ConsoleUI::handleFlightBooking()
 {
+    std::shared_ptr<User> bookingUser = resolvePassenger();
+    if (bookingUser == nullptr) return;
+
     std::string flightNum;
     std::cout << "\nEnter Flight Number: ";
     std::cin >> flightNum;
@@ -666,11 +727,11 @@ void ConsoleUI::handleFlightBooking()
             continue;
         }
 
-        try//for the stoi
+        try
         {
             std::string rowPart = seat.substr(0, seat.length() - 1);
-            char colChar = std::toupper(seat.back());//if user enter small letter
-            int rowIndex = std::stoi(rowPart) - 1; // get row and accout for 0-based index
+            char colChar = std::toupper(seat.back());
+            int rowIndex = std::stoi(rowPart) - 1;
             int colIndex = colChar - 'A';
 
             const auto& seatMap = flight->getSeatMap();
@@ -687,7 +748,7 @@ void ConsoleUI::handleFlightBooking()
                 continue;
             }
 
-            break; // valid and free
+            break;
         }
         catch (...)
         {
@@ -719,18 +780,17 @@ void ConsoleUI::handleFlightBooking()
             return;
     }
 
-
     int loyaltyPointsToUse = 0;
-    auto passenger = std::dynamic_pointer_cast<Passenger>(loggedInUser);
-    if (passenger != nullptr && passenger->getLoyaltyPoints() > 0)//gives user freedom to redeem or not
+    auto passenger = std::dynamic_pointer_cast<Passenger>(bookingUser);
+    if (passenger != nullptr && passenger->getLoyaltyPoints() > 0)
     {
-        std::cout << "\nYou have " << passenger->getLoyaltyPoints() 
-                << " loyalty points (each worth $10 off).\n";
+        std::cout << "\nYou have " << passenger->getLoyaltyPoints()
+                  << " loyalty points (each worth $10 off).\n";
         std::cout << "How many points to redeem? (0 to skip): ";
         std::cin >> loyaltyPointsToUse;
     }
 
-    system.processNewBooking(loggedInUser, flight, seat, method, loyaltyPointsToUse);
+    system.processNewBooking(bookingUser, flight, seat, method, loyaltyPointsToUse);
 }
 
 
@@ -759,7 +819,10 @@ bool AirlineSystem::cancelUserReservation(const std::string& bookingId)
 
 void ConsoleUI::handleBookingManagement()
 {
-    auto reservations = system.getUserReservations(loggedInUser->get_username());
+    std::shared_ptr<User> bookingUser = resolvePassenger();
+    if (bookingUser == nullptr) return;
+
+    auto reservations = system.getUserReservations(bookingUser->get_username());
 
     if (reservations.empty())
     {
@@ -767,7 +830,6 @@ void ConsoleUI::handleBookingManagement()
         return;
     }
 
-    // display all reservations
     std::cout << "\n--- YOUR RESERVATIONS ---\n";
     for (int i = 0; i < reservations.size(); i++)
     {
@@ -798,7 +860,6 @@ void ConsoleUI::handleBookingManagement()
 
     if (choice == 1)
     {
-        // show seat map first so user can pick
         selected->getFlight()->displayAvailableSeats();
 
         std::string newSeat;
@@ -851,4 +912,27 @@ void ConsoleUI::handleBookingManagement()
     {
         system.cancelUserReservation(selected->getBookingId());
     }
+}
+
+std::shared_ptr<User> ConsoleUI::resolvePassenger()
+{
+    if (loggedInUser->getRole() == "Passenger")
+        return loggedInUser;
+
+    std::string passengerUsername;
+    std::cout << "Enter Passenger Username: ";
+    std::cin >> passengerUsername;
+
+    auto passenger = system.getUserByUsername(passengerUsername);
+    if (passenger == nullptr)
+    {
+        std::cout << "[ERROR] Passenger '" << passengerUsername << "' not found.\n";
+        return nullptr;
+    }
+    if (passenger->getRole() != "Passenger")
+    {
+        std::cout << "[ERROR] That account is not a passenger.\n";
+        return nullptr;
+    }
+    return passenger;
 }

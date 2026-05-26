@@ -217,6 +217,45 @@ static std::string toLower(const std::string& s)
     }
     
     
+    void AirlineSystem::viewMaintenanceLogs(const std::string& aircraftID) const
+    {
+        for (const auto& plane : this->fleetRegistry)
+        {
+            if (plane->getAircraftID() == aircraftID)
+            {
+                plane->printFullMaintenanceHistory();
+                return;
+            }
+        }
+        std::cout << "[ERROR] Aircraft '" << aircraftID << "' not found.\n";
+    }
+
+    void AirlineSystem::completeMaintenance(const std::string& aircraftID, 
+    const std::string& maintenanceID, const std::string& completionDate)
+    {
+        for (const auto& plane : this->fleetRegistry)
+        {
+            if (plane->getAircraftID() == aircraftID)
+            {
+                for (auto& log : plane->getMaintenanceHistoryRef())
+                {
+                    if (log.getMaintenanceID() == maintenanceID)
+                    {
+                        log.completeMaintenance(completionDate);
+                        plane->setIsAvailable(true);
+                        std::cout << "[SUCCESS] Maintenance " << maintenanceID 
+                                << " marked complete. Aircraft is now available.\n";
+                        return;
+                    }
+                }
+                std::cout << "[ERROR] Maintenance ID '" << maintenanceID << "' not found.\n";
+                return;
+            }
+        }
+        std::cout << "[ERROR] Aircraft '" << aircraftID << "' not found.\n";
+    }
+
+
     //****************************flights***************************
 
     void AirlineSystem:: scheduleNewFlight(std::shared_ptr<Flight> flight)
@@ -552,4 +591,14 @@ static std::string toLower(const std::string& s)
         }
         return userReservations;
     }
+
+std::shared_ptr<User> AirlineSystem::getUserByUsername(const std::string& username) const
+{
+    for (const auto& user : this->userRegistry)
+    {
+        if (user->get_username() == username)
+            return user;
+    }
+    return nullptr;
+}
     

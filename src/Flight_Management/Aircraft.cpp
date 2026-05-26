@@ -88,6 +88,11 @@ std::vector<Maintenance> Aircraft::getMaintenanceHistory() const
     return this->maintenanceHistory;
 }
 
+std::vector<Maintenance>& Aircraft::getMaintenanceHistoryRef()
+{
+    return this->maintenanceHistory;
+}
+
 void Aircraft::setAircraftID(const std::string& id) 
 {
     this->aircraftID = id;

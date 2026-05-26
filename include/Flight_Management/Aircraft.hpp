@@ -34,6 +34,7 @@ class Aircraft
     int getColumnsPerRow() const;
     bool getIsAvailable() const;
     std::vector<Maintenance> getMaintenanceHistory() const;
+    std::vector<Maintenance>& getMaintenanceHistoryRef();
 
     void setAircraftID(const std::string& id);
     void setModel(const std::string& mdl);
