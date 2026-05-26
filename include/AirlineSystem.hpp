@@ -86,6 +86,8 @@ public:
 
 
     std::vector<std::shared_ptr<Reservation>> getUserReservations(const std::string& username) const;
+
+    bool cancelUserReservation(const std::string& bookingId);
 };
 
 

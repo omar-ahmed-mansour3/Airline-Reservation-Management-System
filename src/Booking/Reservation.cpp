@@ -207,7 +207,18 @@ void Reservation::displayTicket() const
     std::cout << "Booking ID:              " << this->booking_id << std::endl;
     std::cout << "Passenger Name:          " << this->passenger->getFullName() << std::endl; 
     std::cout << "Flight Number:           " << this->flight->getFlightNumber() << std::endl;
+    std::string flightStatusStr;
+    switch(this->flight->getFlightStatus())
+    {
+        case FlightStatus::Scheduled: flightStatusStr = "Scheduled"; break;
+        case FlightStatus::Delayed:   flightStatusStr = "Delayed";   break;
+        case FlightStatus::Boarding:  flightStatusStr = "Boarding";  break;
+        case FlightStatus::Canceled:  flightStatusStr = "Canceled";  break;
+        default:                      flightStatusStr = "Unknown";   break;
+    }
+
     std::cout << "Route:                   " << this->flight->getOrigin() << " -> " << this->flight->getDestination() << std::endl;
+    std::cout << "Flight Status:           " << flightStatusStr << std::endl;
     std::cout << "Departure Time:          " << this->flight->getDepartureTime() << std::endl;
     std::cout << "Seat Assignment:         " << this->Seat_number << std::endl;
     

@@ -181,7 +181,7 @@ void ConsoleUI::displayPassengerMenu()
         std::cout << "1. View My Profile & Loyalty Points\n"
                   << "2. Search Available Flights\n"
                   << "3. Book a Flight & Select Seats\n"
-                  << "4. Modify or Cancel a Reservation\n"
+                  << "4. View, Modify or Cancel a Reservation\n"
                   << "5. Perform Online Check-In\n"
                   << "6. Logout" << std::endl;
         
@@ -355,7 +355,8 @@ void ConsoleUI::handleFlightManagement()
               << "2. Update Flight Details\n"
               << "3. Cancel Flight\n"
               << "4. Remove Flight\n"
-              << "5. Back" << std::endl;
+              << "5. Update Flight Status\n"
+              << "6. Back" << std::endl;
     std::cin >> choice;
 
     if (choice == 1)
@@ -399,6 +400,42 @@ void ConsoleUI::handleFlightManagement()
         std::string num;
         std::cout << "Flight Number to remove: "; std::cin >> num;
         system.removeFlight(num);
+    }
+    else if (choice == 5)
+    {
+        std::string num;
+        std::cout << "Flight Number: "; std::cin >> num;
+
+        auto flight = system.getFlightByNumber(num);
+        if (flight == nullptr)
+        {
+            std::cout << "[ERROR] Flight not found.\n";
+            return;
+        }
+
+        std::cout << "Select New Status:\n"
+                  << "1. Scheduled\n"
+                  << "2. Delayed\n"
+                  << "3. Boarding\n"
+                  << "4. Canceled\n"
+                  << "Choice: ";
+        int statusChoice;
+        std::cin >> statusChoice;
+
+        FlightStatus newStatus;
+        switch (statusChoice)
+        {
+            case 1: newStatus = FlightStatus::Scheduled; break;
+            case 2: newStatus = FlightStatus::Delayed;   break;
+            case 3: newStatus = FlightStatus::Boarding;  break;
+            case 4: newStatus = FlightStatus::Canceled;  break;
+            default:
+                std::cout << "[ERROR] Invalid status choice.\n";
+                return;
+        }
+
+        flight->updateFlightStatus(newStatus);
+        std::cout << "[SUCCESS] Flight " << num << " status updated.\n";
     }
 }
 
@@ -682,9 +719,43 @@ void ConsoleUI::handleFlightBooking()
             return;
     }
 
-    system.processNewBooking(loggedInUser, flight, seat, method);
+
+    int loyaltyPointsToUse = 0;
+    auto passenger = std::dynamic_pointer_cast<Passenger>(loggedInUser);
+    if (passenger != nullptr && passenger->getLoyaltyPoints() > 0)//gives user freedom to redeem or not
+    {
+        std::cout << "\nYou have " << passenger->getLoyaltyPoints() 
+                << " loyalty points (each worth $10 off).\n";
+        std::cout << "How many points to redeem? (0 to skip): ";
+        std::cin >> loyaltyPointsToUse;
+    }
+
+    system.processNewBooking(loggedInUser, flight, seat, method, loyaltyPointsToUse);
 }
 
+
+bool AirlineSystem::cancelUserReservation(const std::string& bookingId)
+{
+    for (const auto& res : this->activeReservations)
+    {
+        if (res->getBookingId() == bookingId)
+        {
+            res->cancelReservation(); // handles seat release and refund message
+
+            // deduct 1 loyalty point if user is a passenger
+            auto passenger = std::dynamic_pointer_cast<Passenger>(res->getPassenger());
+            if (passenger != nullptr && passenger->getLoyaltyPoints() > 0)
+            {
+                passenger->deductLoyaltyPoints(1);
+                std::cout << "[LOYALTY] -1 point deducted. Total points: " 
+                          << passenger->getLoyaltyPoints() << "\n";
+            }
+            return true;
+        }
+    }
+    std::cout << "[ERROR] Reservation not found.\n";
+    return false;
+}
 
 void ConsoleUI::handleBookingManagement()
 {
@@ -778,6 +849,6 @@ void ConsoleUI::handleBookingManagement()
     }
     else if (choice == 2)
     {
-        selected->cancelReservation();
+        system.cancelUserReservation(selected->getBookingId());
     }
 }

@@ -2,7 +2,7 @@
 
 int main()
 {
-    std::cout << "12\n";
+    std::cout << "15\n";
     AirlineSystem system;
     system.seedMockData();
     ConsoleUI ui(system);

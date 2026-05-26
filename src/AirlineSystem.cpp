@@ -454,7 +454,7 @@ static std::string toLower(const std::string& s)
     }
   
     bool  AirlineSystem:: processNewBooking
-        (std::shared_ptr<User> user, std::shared_ptr<Flight> flight, std::string seatNum, PaymentMethod method, int loyaltyPointsToUse=0)
+        (std::shared_ptr<User> user, std::shared_ptr<Flight> flight, std::string seatNum, PaymentMethod method, int loyaltyPointsToUse)
         {
             if(flight==nullptr || user==nullptr)//input check
             {
@@ -482,31 +482,63 @@ static std::string toLower(const std::string& s)
             std::string timestamp = "2024-10-31 14:00";
 
 
-            auto newPayment = std::make_shared<Payment>(txnId, flight->getPrice(), method, timestamp);
-            if (newPayment->processPayment()) 
+            double finalPrice = flight->getPrice();
+            int loyaltyDiscount = 0;
+
+            auto passenger = std::dynamic_pointer_cast<Passenger>(user);
+
+            if (passenger != nullptr && loyaltyPointsToUse > 0)
             {
+                if (loyaltyPointsToUse > passenger->getLoyaltyPoints())
+                {
+                    std::cout << "[WARNING] You only have " << passenger->getLoyaltyPoints() 
+                            << " points. Using all available points.\n";
+                    loyaltyPointsToUse = passenger->getLoyaltyPoints();
+                }
+                loyaltyDiscount = loyaltyPointsToUse * 10; // 1 point = $10
+                if (loyaltyDiscount > finalPrice) loyaltyDiscount = finalPrice;
+                finalPrice -= loyaltyDiscount;
+            }
+
+            std::cout << "\n--- PRICE BREAKDOWN ---\n";
+            std::cout << "Base Fare:         $" << flight->getPrice() << "\n";
+            if (loyaltyDiscount > 0)
+                std::cout << "Loyalty Discount:  -$" << loyaltyDiscount << " (" << loyaltyPointsToUse << " points)\n";
             
-                std::string bookingId = "PNR-" + std::to_string(rand() % 90000 + 10000); // random bookingId
-                
+            std::cout << "Final Price:       $" << finalPrice << "\n";
+            std::cout << "-----------------------\n";
+
+            // txnId and timestamp already generated above
+
+            auto newPayment = std::make_shared<Payment>(txnId, finalPrice, method, timestamp);
+            if (newPayment->processPayment())
+            {
+                if (passenger != nullptr)
+                {
+                    if (loyaltyPointsToUse > 0)
+                        passenger->deductLoyaltyPoints(loyaltyPointsToUse);
+                    
+                    passenger->addLoyaltyPoints(1); // 1 point per booking
+                    std::cout << "[LOYALTY] +1 point earned! Total points: " 
+                            << passenger->getLoyaltyPoints() << "\n";
+                }
+
+                std::string bookingId = "PNR-" + std::to_string(rand() % 90000 + 10000);
                 auto newBooking = std::make_shared<Reservation>(
                     bookingId, seatNum, user, flight, BookingStatus::Confirmed
                 );
                 newBooking->setPayment(newPayment);
                 this->activeReservations.push_back(newBooking);
                 std::cout << "\n[SUCCESS] Booking complete! Your Reservation ID is: " << bookingId << std::endl;
-                newBooking->displayTicket(); 
+                newBooking->displayTicket();
                 return true;
-            
             }
             else
             {
-                std::cout << "[ERROR] Payment declined. Releasing seat " <<
-                seatNum << " back to the public." << std::endl;
+                std::cout << "[ERROR] Payment declined. Releasing seat " << seatNum << " back to the public." << std::endl;
                 flight->releaseSeat(seatNum);
                 return false;
             }
-
-            
 
         }
 
