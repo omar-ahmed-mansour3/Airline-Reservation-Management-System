@@ -40,6 +40,21 @@ Passenger& Passenger:: operator=(const Passenger& other)
 }
 
 
+int Passenger::getLoyaltyPoints() const 
+{
+    return this->loyaltyPoints;
+}
+
+void Passenger::addLoyaltyPoints(int points) 
+{
+    this->loyaltyPoints += points;
+}
+
+void Passenger::deductLoyaltyPoints(int points) 
+{
+    this->loyaltyPoints -= points;
+}
+
 //************overriden functions************* */
 std::string Passenger:: getRole() const 
 {

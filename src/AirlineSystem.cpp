@@ -5,6 +5,62 @@ AirlineSystem::AirlineSystem() {}
 AirlineSystem::~AirlineSystem() {}
 
 
+void AirlineSystem::seedMockData() {
+    // -----------------------------------------------------------------
+    // 1. SEED CREW MEMBERS (Polymorphic: Pilots & Attendants)
+    // -----------------------------------------------------------------
+    auto pilot1 = std::make_shared<Pilot>("P-01", "Captain Ahmed", 120.0, "LIC-9988", "Boeing 737");
+    auto attendant1 = std::make_shared<FlightAttendant>("FA-01", "Sarah Mansour", 80.0, std::vector<std::string>{"English", "Arabic"});
+    
+    this->crewRegistry.push_back(pilot1);
+    this->crewRegistry.push_back(attendant1);
+
+    // -----------------------------------------------------------------
+    // 2. SEED AIRCRAFT (The Fleet)
+    // -----------------------------------------------------------------
+    auto plane1 = std::make_shared<Aircraft>("FLEET-737", "Boeing 737", 120, true, std::vector<Maintenance>{});
+    auto plane2 = std::make_shared<Aircraft>("FLEET-320", "Airbus A320", 150, true, std::vector<Maintenance>{});
+    
+    this->fleetRegistry.push_back(plane1);
+    this->fleetRegistry.push_back(plane2);
+
+    // -----------------------------------------------------------------
+    // 3. SEED USERS (Polymorphic accounts for instant login tests)
+    // -----------------------------------------------------------------
+    // Format matches your constructor orders
+    auto testAdmin = std::make_shared<Administrators>(1, "admin", "admin123", "Omar Ahmed", "0100", "admin@airline.com");
+    auto testPassenger = std::make_shared<Passenger>(2, "passenger", "pass123", "John Doe", "0111", "john@mail.com", "A112233", "Window", "Standard");
+    
+    this->userRegistry.push_back(testAdmin);
+    this->userRegistry.push_back(testPassenger);
+
+    // -----------------------------------------------------------------
+    // 4. SEED FLIGHTS (Leveraging the smart pointers built above)
+    // -----------------------------------------------------------------
+    // Collect pointers to pass into the flight schedules
+    std::vector<std::shared_ptr<CrewMember>> sampleCrew = { pilot1, attendant1 };
+
+    // Flight 1: 5 rows, 4 columns per row seat map
+    // Note: If your FlightStatus enum uses different naming (e.g., Scheduled vs Active), adjust here
+    auto flight1 = std::make_shared<Flight>("MS-101", "Cairo", "Dubai", "14:00", 350.0, 3.5, FlightStatus::Scheduled, plane1, sampleCrew, 5, 4);
+    
+    // Flight 2: 6 rows, 6 columns per row seat map
+    auto flight2 = std::make_shared<Flight>("MS-202", "Cairo", "London", "09:30", 650.0, 5.0, FlightStatus::Scheduled, plane2, sampleCrew, 6, 6);
+
+    this->flightSchedule.push_back(flight1);
+    this->flightSchedule.push_back(flight2);
+    
+    std::cout << "[SYSTEM NOTICE] Seed data injected successfully into system memory.\n";
+}
+
+
+
+static std::string toLower(const std::string& s)
+{
+    std::string result = s;
+    std::transform(result.begin(), result.end(), result.begin(), ::tolower);
+    return result;
+}
 /******************Authentication & User Services ***************/    
 
     std::shared_ptr<User> AirlineSystem::loginUser(std::string username, std::string password) 
@@ -80,66 +136,6 @@ AirlineSystem::~AirlineSystem() {}
         }
         return false;
     }
-
-/*********************The Booking Engine***************************/ 
-
-     bool  AirlineSystem:: processNewBooking
-        (std::shared_ptr<User> user, std::shared_ptr<Flight> flight, std::string seatNum, PaymentMethod method)
-        {
-            if(flight==nullptr || user==nullptr)//input check
-            {
-                std::cout << "[ERROR] Invalid user or flight data. Booking aborted." << std::endl;
-                return false;
-            }
-
-            if(flight->getFlightStatus()== FlightStatus::Canceled)
-            {
-                std::cout << "[ERROR] Cannot book a seat on a canceled flight." << std::endl;
-                return false;
-            }  
-            
-            std::cout << "\n--- Processing New Booking ---" << std::endl;
-            std::cout << "Passenger: " << user->getFullName() << " | Flight: " << flight->getFlightNumber() << std::endl;
-            
-            if (!flight->reserveSeat(seatNum)) //check if seat already booked
-            {
-                std::cout << "[ERROR] Booking failed. Seat " << seatNum << " is unavailable." << std::endl;
-                return false;
-            }
-
-
-            std::string txnId = "TXN-" + std::to_string(rand() % 9000 + 1000); //random ticket number
-            std::string timestamp = "2024-10-31 14:00";
-
-
-            auto newPayment = std::make_shared<Payment>(txnId, flight->getPrice(), method, timestamp);
-            if (newPayment->processPayment()) 
-            {
-            
-                std::string bookingId = "PNR-" + std::to_string(rand() % 90000 + 10000); // random bookingId
-                
-                auto newBooking = std::make_shared<Reservation>(
-                    bookingId, seatNum, user, flight, BookingStatus::Confirmed
-                );
-                newBooking->setPayment(newPayment);
-                this->activeReservations.push_back(newBooking);
-                std::cout << "\n[SUCCESS] Booking complete! Your Reservation ID is: " << bookingId << std::endl;
-                newBooking->displayTicket(); 
-                return true;
-            
-            }
-            else
-            {
-                std::cout << "[ERROR] Payment declined. Releasing seat " <<
-                seatNum << " back to the public." << std::endl;
-                flight->releaseSeat(seatNum);
-                return false;
-            }
-
-            
-
-        }
-
 
 
 // =====================================================================
@@ -222,48 +218,6 @@ AirlineSystem::~AirlineSystem() {}
     
     
     //****************************flights***************************
-    std::shared_ptr<Flight> AirlineSystem:: getFlightByNumber(std::string flightNum) const
-    {
-        for(const auto& flight : this->flightSchedule)
-        {
-            if(flight!=nullptr && flightNum == flight->getFlightNumber())
-            {
-                return flight;
-            }
-        }
-
-        std::cout << "[ERROR] Flight '" << flightNum << "' could not be found in the system." << std::endl;
-        return nullptr;
-    }
-    
-    std::vector<std::shared_ptr<Flight>> AirlineSystem:: searchAvailableFlights
-        (std::string origin, std::string dest, std::string date) const
-    {
-        std::vector<std::shared_ptr<Flight>> available;
-
-        for(const auto& flight : this->flightSchedule)
-        {
-            if(flight!=nullptr && (flight->getFlightStatus()== FlightStatus::Scheduled || flight->getFlightStatus()== FlightStatus::Delayed)
-             &&flight->getOrigin()==origin &&flight->getDestination()==dest 
-             && flight->getDepartureTime()==date)
-            {
-                available.push_back(flight);
-            }
-        }
-
-        if (available.empty()) 
-        {
-            std::cout << "[INFO] No available flights found from " << origin 
-                  << " to " << dest << " on " << date << "." << std::endl;
-        } 
-        else 
-        {
-            std::cout << "[SUCCESS] Found " << available.size() 
-                  << " available flight(s) matching your criteria!" << std::endl;
-        }
-        return available;
-    }
-  
 
     void AirlineSystem:: scheduleNewFlight(std::shared_ptr<Flight> flight)
     {
@@ -451,5 +405,119 @@ AirlineSystem::~AirlineSystem() {}
     }
 
 
-   
+// =====================================================================
+//            Booking Services (Passenger & Booking Agent Services)
+// =====================================================================
+    std::shared_ptr<Flight> AirlineSystem:: getFlightByNumber(std::string flightNum) const
+    {
+        for(const auto& flight : this->flightSchedule)
+        {
+            if(flight!=nullptr && flightNum == flight->getFlightNumber())
+            {
+                return flight;
+            }
+        }
 
+        std::cout << "[ERROR] Flight '" << flightNum << "' could not be found in the system." << std::endl;
+        return nullptr;
+    }
+    
+    std::vector<std::shared_ptr<Flight>> AirlineSystem:: searchAvailableFlights
+        (std::string origin, std::string dest, std::string date,double maxPrice) const
+    {
+        std::vector<std::shared_ptr<Flight>> available;
+
+        for(const auto& flight : this->flightSchedule)
+        {
+            if (flight->getFlightStatus() == FlightStatus::Scheduled || 
+                flight->getFlightStatus() == FlightStatus::Delayed)
+            {
+                if (!origin.empty() && toLower(flight->getOrigin()) != toLower(origin)) continue;
+                if (!dest.empty()   && toLower(flight->getDestination()) != toLower(dest)) continue;
+                if (!date.empty()   && flight->getDepartureTime() != date) continue;
+                if (maxPrice > 0    && flight->getPrice() > maxPrice) continue;
+                available.push_back(flight);
+            }
+        }
+
+        if (available.empty()) 
+        {
+            std::cout << "[INFO] No available flights found from " << origin 
+                  << " to " << dest << " on " << date << "." << std::endl;
+        } 
+        else 
+        {
+            std::cout << "[SUCCESS] Found " << available.size() 
+                  << " available flight(s) matching your criteria!" << std::endl;
+        }
+        return available;
+    }
+  
+    bool  AirlineSystem:: processNewBooking
+        (std::shared_ptr<User> user, std::shared_ptr<Flight> flight, std::string seatNum, PaymentMethod method, int loyaltyPointsToUse=0)
+        {
+            if(flight==nullptr || user==nullptr)//input check
+            {
+                std::cout << "[ERROR] Invalid user or flight data. Booking aborted." << std::endl;
+                return false;
+            }
+
+            if(flight->getFlightStatus()== FlightStatus::Canceled)
+            {
+                std::cout << "[ERROR] Cannot book a seat on a canceled flight." << std::endl;
+                return false;
+            }  
+            
+            std::cout << "\n--- Processing New Booking ---" << std::endl;
+            std::cout << "Passenger: " << user->getFullName() << " | Flight: " << flight->getFlightNumber() << std::endl;
+            
+            if (!flight->reserveSeat(seatNum)) //check if seat already booked
+            {
+                std::cout << "[ERROR] Booking failed. Seat " << seatNum << " is unavailable." << std::endl;
+                return false;
+            }
+
+
+            std::string txnId = "TXN-" + std::to_string(rand() % 9000 + 1000); //random ticket number
+            std::string timestamp = "2024-10-31 14:00";
+
+
+            auto newPayment = std::make_shared<Payment>(txnId, flight->getPrice(), method, timestamp);
+            if (newPayment->processPayment()) 
+            {
+            
+                std::string bookingId = "PNR-" + std::to_string(rand() % 90000 + 10000); // random bookingId
+                
+                auto newBooking = std::make_shared<Reservation>(
+                    bookingId, seatNum, user, flight, BookingStatus::Confirmed
+                );
+                newBooking->setPayment(newPayment);
+                this->activeReservations.push_back(newBooking);
+                std::cout << "\n[SUCCESS] Booking complete! Your Reservation ID is: " << bookingId << std::endl;
+                newBooking->displayTicket(); 
+                return true;
+            
+            }
+            else
+            {
+                std::cout << "[ERROR] Payment declined. Releasing seat " <<
+                seatNum << " back to the public." << std::endl;
+                flight->releaseSeat(seatNum);
+                return false;
+            }
+
+            
+
+        }
+
+    std::vector<std::shared_ptr<Reservation>> AirlineSystem::getUserReservations(const std::string& username) const
+    {
+        std::vector<std::shared_ptr<Reservation>> userReservations;
+        for (const auto& res : this->activeReservations)
+        {
+            if (res->getPassenger()->get_username() == username)
+                userReservations.push_back(res);
+        }
+        return userReservations;
+    }
+    

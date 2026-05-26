@@ -3,6 +3,16 @@
 #include"User.hpp"
 #include "Flight.hpp"
 #include"Reservation.hpp"
+#include "CrewMember.hpp"
+#include"Administrators.hpp"
+#include"BookingAdmin.hpp"
+#include"Passenger.hpp"
+#include"Aircraft.hpp"
+#include"Maintenance.hpp"
+#include "Payment.hpp"
+#include"FlightAttendant.hpp"
+#include"Pilot.hpp"
+#include <algorithm>
 class AirlineSystem
 {
 private:
@@ -17,15 +27,15 @@ public:
     ~AirlineSystem();
 
 
+    void seedMockData();
+
 /******************Authentication & User Services ***************/    
     std::shared_ptr<User> loginUser(std::string username, std::string password);
     void registerNewUser(std::shared_ptr<User> newUser);
     bool usernameExists(const std::string& username) const;
 
-/*********************The Booking Engine***************************/
 
-    bool processNewBooking
-        (std::shared_ptr<User> user, std::shared_ptr<Flight> flight, std::string seatNum, PaymentMethod method);
+
 
 // =====================================================================
 //            FLIGHT & AIRCRAFT & CREW & User MANAGEMENT (Admin Services)
@@ -40,9 +50,7 @@ public:
     void removeAircraft(std::string aircraftID);
 
     //*************flights*********************************************/
-    std::shared_ptr<Flight> getFlightByNumber(std::string flightNum) const;
-    std::vector<std::shared_ptr<Flight>> searchAvailableFlights
-            (std::string origin, std::string dest, std::string date) const;
+
 
     void scheduleNewFlight(std::shared_ptr<Flight> flight);
     void cancelFlight(std::string flightNum);//status = canceled, refunds people
@@ -61,6 +69,23 @@ public:
                 const std::string& newPhone, const std::string& newEmail,
                 const std::string& newPassword);
 
+
+
+
+
+// =====================================================================
+//            Booking Services (Passenger & Booking Agent Services)
+// =====================================================================
+
+    std::shared_ptr<Flight> getFlightByNumber(std::string flightNum) const;
+    std::vector<std::shared_ptr<Flight>> searchAvailableFlights
+            (std::string origin, std::string dest, std::string date,double maxPrice) const;
+
+    bool processNewBooking(std::shared_ptr<User> user, std::shared_ptr<Flight> flight, 
+                       std::string seatNum, PaymentMethod method, int loyaltyPointsToUse = 0);
+
+
+    std::vector<std::shared_ptr<Reservation>> getUserReservations(const std::string& username) const;
 };
 
 

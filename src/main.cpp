@@ -2,8 +2,9 @@
 
 int main()
 {
-    std::cout << "5\n";
+    std::cout << "12\n";
     AirlineSystem system;
+    system.seedMockData();
     ConsoleUI ui(system);
     ui.startApp();
     return 0;

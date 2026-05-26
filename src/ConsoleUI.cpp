@@ -193,13 +193,30 @@ void ConsoleUI::displayPassengerMenu()
                 this->loggedInUser->showProfile();
                 break;
             case 2:
-                // TODO: system.searchAvailableFlights(...)
+            {
+                std::string origin, dest, date;
+                double maxPrice;
+                std::cout << "Origin (leave blank to skip): ";      
+                std::cin.ignore(); std::getline(std::cin, origin);
+                std::cout << "Destination (leave blank to skip): "; 
+                std::getline(std::cin, dest);
+                std::cout << "Date (leave blank to skip): ";        
+                std::getline(std::cin, date);
+                std::cout << "Max Price (0 to skip): ";             
+                std::cin >> maxPrice;
+
+                auto results = system.searchAvailableFlights(origin, dest, date, maxPrice);
+                for (const auto& flight : results)
+                    flight->displayFlightDetails();
                 break;
+
+
+            }
             case 3:
-                // TODO: system.processNewBooking(...)
+                this->handleFlightBooking();
                 break;
             case 4:
-                // TODO: modify/cancel logic
+                this->handleBookingManagement();
                 break;
             case 5:
                 // TODO: check-in logic
@@ -290,10 +307,28 @@ void ConsoleUI::displayBookingAgentMenu()
                 this->loggedInUser->showProfile(); 
                 break;
             case 2:
+            {
+                std::string origin, dest, date;
+                double maxPrice;
+                std::cout << "Origin (leave blank to skip): ";      
+                std::cin.ignore(); std::getline(std::cin, origin);
+                std::cout << "Destination (leave blank to skip): "; 
+                std::getline(std::cin, dest);
+                std::cout << "Date (leave blank to skip): ";        
+                std::getline(std::cin, date);
+                std::cout << "Max Price (0 to skip): ";             
+                std::cin >> maxPrice;
+
+                auto results = system.searchAvailableFlights(origin, dest, date, maxPrice);
+                for (const auto& flight : results)
+                    flight->displayFlightDetails();
                 break;
+            }
             case 3:
+                this->handleFlightBooking();
                 break;
             case 4:
+                this->handleBookingManagement();
                 break;
             case 5:
                 break;
@@ -559,3 +594,190 @@ void ConsoleUI::handleCreateUser()
 
 }
 
+
+//****************BOOKING FUNCTIONS*****************
+void ConsoleUI::handleFlightBooking()
+{
+    std::string flightNum;
+    std::cout << "\nEnter Flight Number: ";
+    std::cin >> flightNum;
+
+    auto flight = system.getFlightByNumber(flightNum);
+    if (flight == nullptr)
+    {
+        std::cout << "[ERROR] Flight '" << flightNum << "' not found.\n";
+        return;
+    }
+
+    flight->displayFlightDetails();
+    flight->displayAvailableSeats();
+
+    std::string seat;
+    while (true)
+    {
+        std::cout << "\nEnter Seat Number (e.g. 03B) or 'XXX' to cancel: ";
+        std::cin >> seat;
+        if (seat == "XXX")
+        {
+            std::cout << "[INFO] Booking cancelled.\n";
+            return;
+        }
+
+        if (seat.length() < 3)
+        {
+            std::cout << "[ERROR] Invalid seat format. Use format like '01A'. Try again.\n";
+            continue;
+        }
+
+        try//for the stoi
+        {
+            std::string rowPart = seat.substr(0, seat.length() - 1);
+            char colChar = std::toupper(seat.back());//if user enter small letter
+            int rowIndex = std::stoi(rowPart) - 1; // get row and accout for 0-based index
+            int colIndex = colChar - 'A';
+
+            const auto& seatMap = flight->getSeatMap();
+            if (rowIndex < 0 || rowIndex >= flight->getRows() ||
+                colIndex < 0 || colIndex >= flight->getColumnsPerRow())
+            {
+                std::cout << "[ERROR] Seat " << seat << " does not exist on this flight. Try again.\n";
+                continue;
+            }
+
+            if (seatMap[rowIndex][colIndex] == "X")
+            {
+                std::cout << "[WARNING] Seat " << seat << " is already occupied. Pick another.\n";
+                continue;
+            }
+
+            break; // valid and free
+        }
+        catch (...)
+        {
+            std::cout << "[ERROR] Invalid seat format. Use format like '01A'. Try again.\n";
+            continue;
+        }
+    }
+
+    std::cout << "\nSelect Payment Method:\n"
+              << "1. Credit Card\n"
+              << "2. Debit Card\n"
+              << "3. PayPal\n"
+              << "4. Loyalty Points\n"
+              << "5. Cash\n"
+              << "Choice: ";
+    int payChoice;
+    std::cin >> payChoice;
+
+    PaymentMethod method;
+    switch (payChoice)
+    {
+        case 1: method = CreditCard;     break;
+        case 2: method = DebitCard;      break;
+        case 3: method = PayPal;         break;
+        case 4: method = LoyaltyPoints;  break;
+        case 5: method = Cash;           break;
+        default:
+            std::cout << "[ERROR] Invalid payment method.\n";
+            return;
+    }
+
+    system.processNewBooking(loggedInUser, flight, seat, method);
+}
+
+
+void ConsoleUI::handleBookingManagement()
+{
+    auto reservations = system.getUserReservations(loggedInUser->get_username());
+
+    if (reservations.empty())
+    {
+        std::cout << "[INFO] You have no active reservations.\n";
+        return;
+    }
+
+    // display all reservations
+    std::cout << "\n--- YOUR RESERVATIONS ---\n";
+    for (int i = 0; i < reservations.size(); i++)
+    {
+        std::cout << i + 1 << ". ";
+        reservations[i]->displayTicket();
+    }
+
+    std::cout << "Enter reservation number (0 to go back): ";
+    int pick;
+    std::cin >> pick;
+
+    if (pick == 0) return;
+
+    if (pick < 1 || pick > reservations.size())
+    {
+        std::cout << "[ERROR] Invalid selection.\n";
+        return;
+    }
+
+    auto selected = reservations[pick - 1];
+
+    std::cout << "\n1. Modify Seat\n"
+              << "2. Cancel Reservation\n"
+              << "3. Back\n"
+              << "Choice: ";
+    int choice;
+    std::cin >> choice;
+
+    if (choice == 1)
+    {
+        // show seat map first so user can pick
+        selected->getFlight()->displayAvailableSeats();
+
+        std::string newSeat;
+        while (true)
+        {
+            std::cout << "Enter new seat number or 'XXX' to cancel: ";
+            std::cin >> newSeat;
+
+            if (newSeat == "XXX") return;
+
+            if (newSeat.length() < 3)
+            {
+                std::cout << "[ERROR] Invalid format. Use format like '01A'.\n";
+                continue;
+            }
+
+            try
+            {
+                std::string rowPart = newSeat.substr(0, newSeat.length() - 1);
+                char colChar = std::toupper(newSeat.back());
+                int rowIndex = std::stoi(rowPart) - 1;
+                int colIndex = colChar - 'A';
+
+                const auto& seatMap = selected->getFlight()->getSeatMap();
+                if (rowIndex < 0 || rowIndex >= selected->getFlight()->getRows() ||
+                    colIndex < 0 || colIndex >= selected->getFlight()->getColumnsPerRow())
+                {
+                    std::cout << "[ERROR] Seat does not exist. Try again.\n";
+                    continue;
+                }
+
+                if (seatMap[rowIndex][colIndex] == "X")
+                {
+                    std::cout << "[WARNING] Seat already occupied. Pick another.\n";
+                    continue;
+                }
+
+                break;
+            }
+            catch (...)
+            {
+                std::cout << "[ERROR] Invalid format. Try again.\n";
+                continue;
+            }
+        }
+
+        selected->modifySeat(newSeat);
+    }
+    else if (choice == 2)
+    {
+        selected->cancelReservation();
+    }
+}

@@ -26,6 +26,11 @@ Passenger(int id, std::string uname, std::string pwd, std::string name,
 
     ~Passenger();
 
+
+
+    int getLoyaltyPoints() const;
+    void addLoyaltyPoints(int points);
+    void deductLoyaltyPoints(int points);
     //************overriden functions************* */
 
     void showProfile() const override;

@@ -30,6 +30,10 @@ void handleCrewAssignment();
 void handleUserManagement();
 void handleCreateUser();
 
+//***********BOOKING FUNCTIONs***************/
+void handleFlightBooking();
+void handleBookingManagement();
+
 public:
 
     //constructor 
