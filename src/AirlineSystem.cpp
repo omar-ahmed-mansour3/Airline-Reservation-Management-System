@@ -51,6 +51,17 @@ void AirlineSystem::seedMockData() {
     this->flightSchedule.push_back(flight2);
     
     std::cout << "[SYSTEM NOTICE] Seed data injected successfully into system memory.\n";
+
+    flight1->reserveSeat("01A"); // mark seat as taken in the seat map
+
+auto testPayment = std::make_shared<Payment>("TXN-0001", 350.0, CreditCard, "2024-10-31 10:00");
+testPayment->processPayment(); // sets status to Completed
+
+auto testReservation = std::make_shared<Reservation>(
+    "PNR-00001", "01A", testPassenger, flight1, BookingStatus::Confirmed
+);
+testReservation->setPayment(testPayment);
+this->activeReservations.push_back(testReservation);
 }
 
 
@@ -592,7 +603,7 @@ static std::string toLower(const std::string& s)
         return userReservations;
     }
 
-std::shared_ptr<User> AirlineSystem::getUserByUsername(const std::string& username) const
+    std::shared_ptr<User> AirlineSystem::getUserByUsername(const std::string& username) const
 {
     for (const auto& user : this->userRegistry)
     {
@@ -601,4 +612,151 @@ std::shared_ptr<User> AirlineSystem::getUserByUsername(const std::string& userna
     }
     return nullptr;
 }
-    
+
+bool AirlineSystem::checkInPassenger(const std::string& bookingId)
+{
+    for (const auto& reservation : this->activeReservations)
+    {
+        if (reservation->getBookingId() == bookingId)
+        {
+            return reservation->checkIn();
+        }
+    }
+    std::cout << "[ERROR] Reservation not found for check-in." << std::endl;
+    return false;
+}
+
+// =====================================================================
+//                        REPORTS (Admin Only)
+// =====================================================================
+
+
+    void AirlineSystem::generateMaintenanceReport() const
+{
+    std::cout << "\n=============================================\n";
+    std::cout << "         MAINTENANCE REPORT                  \n";
+    std::cout << "=============================================\n";
+    std::cout << "Total Aircraft in Fleet: " << this->fleetRegistry.size() << "\n\n";
+
+    for (const auto& plane : this->fleetRegistry)
+    {
+        std::cout << "Aircraft: " << plane->getAircraftID() 
+                  << " | Model: " << plane->getModel()
+                  << " | Status: " << (plane->getIsAvailable() ? "Available" : "Grounded") << "\n";
+
+        auto history = plane->getMaintenanceHistory();
+        if (history.empty())
+        {
+            std::cout << "  No maintenance logs found.\n";
+        }
+        else
+        {
+            int scheduled = 0, inProgress = 0, completed = 0;
+            for (const auto& log : history)
+            {
+                switch (log.getStatus())
+                {
+                    case MaintenanceStatus::Scheduled:  scheduled++;  break;
+                    case MaintenanceStatus::InProgress: inProgress++; break;
+                    case MaintenanceStatus::Completed:  completed++;  break;
+                }
+            }
+            std::cout << "  Total Logs: "   << history.size()  << "\n";
+            std::cout << "  Scheduled: "    << scheduled       << "\n";
+            std::cout << "  In Progress: "  << inProgress      << "\n";
+            std::cout << "  Completed: "    << completed        << "\n";
+        }
+        std::cout << "---------------------------------------------\n";
+    }
+}
+
+    void AirlineSystem::generateUserActivityReport() const
+{
+    std::cout << "\n=============================================\n";
+    std::cout << "         USER ACTIVITY REPORT                \n";
+    std::cout << "=============================================\n";
+
+    int totalPassengers = 0, totalAdmins = 0, totalBookingAdmins = 0;
+    for (const auto& user : this->userRegistry)
+    {
+        if      (user->getRole() == "Passenger")    totalPassengers++;
+        else if (user->getRole() == "Administrators") totalAdmins++;
+        else if (user->getRole() == "BookingAdmin") totalBookingAdmins++;
+    }
+
+    std::cout << "Total Users:          " << this->userRegistry.size()  << "\n";
+    std::cout << "Passengers:           " << totalPassengers             << "\n";
+    std::cout << "Booking Agents:       " << totalBookingAdmins          << "\n";
+    std::cout << "Administrators:       " << totalAdmins                 << "\n\n";
+
+    // booking stats
+    int confirmed = 0, canceled = 0, refunded = 0, pending = 0;
+    double totalRevenue = 0.0;
+
+    for (const auto& res : this->activeReservations)
+    {
+        switch (res->getBookingStatus())
+        {
+            case BookingStatus::Confirmed:      
+                confirmed++; 
+                if (res->getPayment() != nullptr)
+                    totalRevenue += res->getPayment()->getAmount();
+                break;
+            case BookingStatus::Canceled:       canceled++;  break;
+            case BookingStatus::Refunded:       refunded++;  break;
+            case BookingStatus::PendingPayment: pending++;   break;
+        }
+    }
+
+    std::cout << "Total Reservations:   " << this->activeReservations.size() << "\n";
+    std::cout << "Confirmed:            " << confirmed  << "\n";
+    std::cout << "Canceled:             " << canceled   << "\n";
+    std::cout << "Refunded:             " << refunded   << "\n";
+    std::cout << "Pending Payment:      " << pending    << "\n";
+    std::cout << "Total Revenue:        $" << totalRevenue << "\n";
+    std::cout << "=============================================\n";
+}
+
+    void AirlineSystem::generateFlightReport() const
+{
+    std::cout << "\n=============================================\n";
+    std::cout << "           FLIGHT REPORT                     \n";
+    std::cout << "=============================================\n";
+    std::cout << "Total Flights: " << this->flightSchedule.size() << "\n\n";
+
+    int scheduled = 0, delayed = 0, boarding = 0, canceled = 0;
+    for (const auto& flight : this->flightSchedule)
+    {
+        switch (flight->getFlightStatus())
+        {
+            case FlightStatus::Scheduled: scheduled++; break;
+            case FlightStatus::Delayed:   delayed++;   break;
+            case FlightStatus::Boarding:  boarding++;  break;
+            case FlightStatus::Canceled:  canceled++;  break;
+        }
+    }
+
+    std::cout << "Scheduled: " << scheduled << "\n";
+    std::cout << "Delayed:   " << delayed   << "\n";
+    std::cout << "Boarding:  " << boarding  << "\n";
+    std::cout << "Canceled:  " << canceled  << "\n\n";
+
+    // per flight booking count
+    std::cout << "--- Bookings Per Flight ---\n";
+    for (const auto& flight : this->flightSchedule)
+    {
+        int bookingCount = 0;
+        for (const auto& res : this->activeReservations)
+        {
+            if (res->getFlight()->getFlightNumber() == flight->getFlightNumber() &&
+                res->getBookingStatus() == BookingStatus::Confirmed)
+                bookingCount++;
+        }
+        std::cout << "Flight " << flight->getFlightNumber()
+                  << " (" << flight->getOrigin() << " -> " << flight->getDestination() << ")"
+                  << " | Confirmed Bookings: " << bookingCount << "\n";
+    }
+    std::cout << "=============================================\n";
+}
+
+

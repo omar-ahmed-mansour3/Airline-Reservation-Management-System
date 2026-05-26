@@ -17,6 +17,7 @@ class Reservation
         std::shared_ptr<Flight> flight;
         std::shared_ptr<Payment> payment;       
         BookingStatus bookingStatus;
+        bool isCheckedIn;
     public:
 
     //**********rule of 5***************** */
@@ -41,6 +42,8 @@ class Reservation
         void setFlight(std::shared_ptr<Flight> fl);
         void setPayment(std::shared_ptr<Payment> pay);
         void setBookingStatus(BookingStatus status);
+        bool getIsCheckedIn() const;
+        bool checkIn();
 
     //************ Class Specific Functions ****************** */
         bool confirmReservation();

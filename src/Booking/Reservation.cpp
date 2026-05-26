@@ -5,12 +5,13 @@
     
     Reservation::Reservation(std::string booking_id, std::string Seat_number, std::shared_ptr<User> passenger,
                             std::shared_ptr<Flight> flight, BookingStatus bookingStatus)
-        : booking_id(std::move(booking_id)), // Using std::move for efficiency!
+        : booking_id(std::move(booking_id)),
         Seat_number(Seat_number),
         passenger(passenger),
         flight(flight),
         payment(nullptr),                  
-        bookingStatus(bookingStatus)
+        bookingStatus(bookingStatus),
+        isCheckedIn(false)
     {}
 
     
@@ -22,6 +23,7 @@
         this->flight = other.flight;
         this->payment = other.payment;
         this->bookingStatus = other.bookingStatus;
+        this->isCheckedIn = other.isCheckedIn;
     }
 
    
@@ -35,6 +37,7 @@
             this->flight = other.flight;
             this->payment = other.payment;
             this->bookingStatus = other.bookingStatus;
+            this->isCheckedIn = other.isCheckedIn;
         }
         return *this;
     }
@@ -153,6 +156,7 @@ void Reservation::cancelReservation()
     }
 
     this->flight->releaseSeat(this->Seat_number);
+    this->isCheckedIn = false;  
 
     if (this->bookingStatus == BookingStatus::Confirmed) 
     {
@@ -224,5 +228,35 @@ void Reservation::displayTicket() const
     
     std::cout << "-------------------------------------------------" << std::endl;
     std::cout << "Ticket Status:           " << statusStr << std::endl;
+    std::cout << "Check-In Status:         " << (this->isCheckedIn ? "Checked In" : "Not Checked In") << std::endl;
     std::cout << "=================================================\n" << std::endl;
+}
+
+bool Reservation::getIsCheckedIn() const
+{
+    return this->isCheckedIn;
+}
+
+bool Reservation::checkIn()
+{
+    if (this->bookingStatus != BookingStatus::Confirmed)
+    {
+        std::cout << "[ERROR] Cannot check in. Reservation is not confirmed.\n";
+        return false;
+    }
+    if (this->isCheckedIn)
+    {
+        std::cout << "[INFO] Passenger is already checked in.\n";
+        return false;
+    }
+    if (this->flight->getFlightStatus() == FlightStatus::Canceled)
+    {
+        std::cout << "[ERROR] Cannot check in. Flight is canceled.\n";
+        return false;
+    }
+
+    this->isCheckedIn = true;
+    std::cout << "[SUCCESS] Check-in complete! Your boarding pass is ready.\n";
+    this->displayTicket();
+    return true;
 }

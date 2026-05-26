@@ -219,7 +219,7 @@ void ConsoleUI::displayPassengerMenu()
                 this->handleBookingManagement();
                 break;
             case 5:
-                // TODO: check-in logic
+                this->handleCheckIn();
                 break;
             case 6: // Logout
                 std::cout << "\n[SUCCESS] Passenger logged out." << std::endl;
@@ -274,6 +274,7 @@ void ConsoleUI::displayAdminMenu()
                 this->handleMaintenanceManagement();
                 break;
             case 7: // View Reports
+                this->handleReports();
                 break;
             case 8: // Logout
                 std::cout << "\n[SUCCESS] Master Admin console locked. Logged out safely." << std::endl;
@@ -335,6 +336,7 @@ void ConsoleUI::displayBookingAgentMenu()
                 this->handleBookingManagement();
                 break;
             case 5:
+                this->handleCheckIn();
                 break;
             case 6: // Logout
                 std::cout << "\n[SUCCESS] Booking Agent logged out safely." << std::endl;
@@ -936,3 +938,80 @@ std::shared_ptr<User> ConsoleUI::resolvePassenger()
     }
     return passenger;
 }
+
+void ConsoleUI::handleCheckIn()
+{
+    std::shared_ptr<User> passenger = resolvePassenger();
+    if (passenger == nullptr) return;
+
+    auto reservations = system.getUserReservations(passenger->get_username());
+    if (reservations.empty())
+    {
+        std::cout << "[INFO] No reservations found for check-in." << std::endl;
+        return;
+    }
+
+    std::cout << "\n--- CHECK-IN ---\n";
+    for (int i = 0; i < reservations.size(); i++)
+    {
+        std::cout << i + 1 << ". ";
+        reservations[i]->displayTicket();
+    }
+
+    std::cout << "Select reservation number to check in (0 to go back): ";
+    int selection;
+    std::cin >> selection;
+    if (selection == 0) return;
+
+    if (selection < 1 || selection > reservations.size())
+    {
+        std::cout << "[ERROR] Invalid selection." << std::endl;
+        return;
+    }
+
+    auto selected = reservations[selection - 1];
+    if (selected->getIsCheckedIn())
+    {
+        std::cout << "[INFO] Reservation already checked in." << std::endl;
+        return;
+    }
+
+    system.checkInPassenger(selected->getBookingId());
+}
+
+void ConsoleUI::handleReports()
+{
+    int choice;
+    bool stayInMenu = true;
+
+    while (stayInMenu)
+    {
+        std::cout << "\n--- REPORTS ---\n"
+                  << "1. Maintenance Report\n"
+                  << "2. User Activity Report\n"
+                  << "3. Flight Report\n"
+                  << "4. Back\n"
+                  << "Choice: ";
+        std::cin >> choice;
+
+        switch (choice)
+        {
+            case 1:
+                system.generateMaintenanceReport();
+                break;
+            case 2:
+                system.generateUserActivityReport();
+                break;
+            case 3:
+                system.generateFlightReport();
+                break;
+            case 4:
+                stayInMenu = false;
+                break;
+            default:
+                std::cout << "[ERROR] Invalid choice.\n";
+                break;
+        }
+    }
+}
+

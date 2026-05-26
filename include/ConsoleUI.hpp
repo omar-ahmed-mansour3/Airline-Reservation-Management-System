@@ -34,6 +34,10 @@ void handleMaintenanceManagement();
 //***********BOOKING FUNCTIONs***************/
 void handleFlightBooking();
 void handleBookingManagement();
+void handleCheckIn();
+
+//***********REPORTING FUNCTIONS***************/
+void handleReports();
 
 std::shared_ptr<User> resolvePassenger();
 

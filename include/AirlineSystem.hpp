@@ -91,8 +91,19 @@ public:
     std::vector<std::shared_ptr<Reservation>> getUserReservations(const std::string& username) const;
 
     bool cancelUserReservation(const std::string& bookingId);
+    bool checkInPassenger(const std::string& bookingId);
     
     std::shared_ptr<User> getUserByUsername(const std::string& username) const;
+
+
+// =====================================================================
+//                        REPORTS (Admin Only)
+// =====================================================================
+void generateMaintenanceReport() const;
+void generateUserActivityReport() const;
+void generateFlightReport() const;
+
+
 };
 
 
