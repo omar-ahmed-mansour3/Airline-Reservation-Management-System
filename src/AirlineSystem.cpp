@@ -143,10 +143,10 @@ AirlineSystem::~AirlineSystem() {}
 
 
 // =====================================================================
-//             FLIGHT & AIRCRAFT MANAGEMENT (Admin Services)
+//             FLIGHT & AIRCRAFT & CREW & USER MANAGEMENT (Admin Services)
 // =====================================================================
 
-    //Aircrafts 
+    //*****************************Aircrafts**********************
     void AirlineSystem:: addAircraftToFleet(std::shared_ptr<Aircraft> aircraft)
         {
             if(aircraft == nullptr)
@@ -221,7 +221,7 @@ AirlineSystem::~AirlineSystem() {}
     }
     
     
-    //flights
+    //****************************flights***************************
     std::shared_ptr<Flight> AirlineSystem:: getFlightByNumber(std::string flightNum) const
     {
         for(const auto& flight : this->flightSchedule)
@@ -370,7 +370,7 @@ AirlineSystem::~AirlineSystem() {}
     }
 
 
-//********CREW 
+//*******************************CREW***********************************
     void AirlineSystem::assignCrewToFlight(std::string flightNum, std::shared_ptr<CrewMember> crew)
     {
         if (crew == nullptr) 
@@ -417,5 +417,39 @@ AirlineSystem::~AirlineSystem() {}
     }
     
 
+//***********************USER************************** */
 
+    bool AirlineSystem::deleteUser(const std::string& username)
+    {
+        for (auto it = userRegistry.begin(); it != userRegistry.end(); ++it)
+        {
+            if ((*it)->get_username() == username)
+            {
+                userRegistry.erase(it);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool AirlineSystem::updateUser(const std::string& username, const std::string& newFullName,
+                                const std::string& newPhone, const std::string& newEmail,
+                                const std::string& newPassword)
+    {
+        for (const auto& user : userRegistry)
+        {
+            if (user->get_username() == username)
+            {
+                user->set_full_name(newFullName);
+                user->set_Phone(newPhone);
+                user->set_email(newEmail);
+                user->set_password(newPassword);
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+   
 

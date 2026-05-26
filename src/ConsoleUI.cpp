@@ -124,7 +124,7 @@ void ConsoleUI::handleLogin() {
 }
 
 void ConsoleUI::handleRegistration() {
-    std::string username, password, fullName;
+    std::string username, password, fullName, phone, email;
     int roleChoice;
 
     std::cout << "\n=============================================\n";
@@ -141,25 +141,30 @@ void ConsoleUI::handleRegistration() {
     std::cout << "Enter a New Password: \n";
     std::cin >> password;
     
-    std::cout << "Enter Full Name (No spaces): \n";
-    std::cin >> fullName;
+    std::cout << "Enter Your Full Name: \n";
+    std::cin.ignore(); 
+    std::getline(std::cin, fullName);
 
     std::cout << "Select Role (1: Passenger, 2: Booking Agent, 3: Admin): \n";
     std::cin >> roleChoice;
+    std::cout<<"Enter Phone Number: \n";
+    std::cin>> phone;
+    std::cout<<"Enter Email: \n";
+    std::cin>> email;
 
     std::shared_ptr<User> newUser = nullptr;
 
     if (roleChoice == 1) 
     {
-        newUser = std::make_shared<Passenger>(0, username, password, fullName, "N/A", "N/A", "N/A");
+        newUser = std::make_shared<Passenger>(0, username, password, fullName, phone, email, "N/A");
     } 
     else if (roleChoice == 2) 
     {
-        newUser = std::make_shared<BookingAdmin>(0, username, password, fullName, "N/A", "N/A");
+        newUser = std::make_shared<BookingAdmin>(0, username, password, fullName, phone, email);
     } 
     else if (roleChoice == 3) 
     {
-        newUser = std::make_shared<Administrators>(0, username, password, fullName, "N/A", "N/A");
+        newUser = std::make_shared<Administrators>(0, username, password, fullName, phone, email);
     } 
     else 
     {
@@ -270,6 +275,7 @@ void ConsoleUI::displayAdminMenu()
                 this->loggedInUser->showProfile(); 
                 break;
             case 2: // Manage Users
+                this->handleUserManagement();
                 break;
             case 3: // Manage Flights
                 this->handleFlightManagement();
@@ -366,7 +372,7 @@ void ConsoleUI::handleFlightManagement()
             num, origin, dest, time, price, hours,
             FlightStatus::Scheduled, nullptr,
             std::vector<std::shared_ptr<CrewMember>>{},
-            10, 6  // default rows and columns
+            50, 6  // hard coded rows and columns
         );
         system.scheduleNewFlight(flight);
     }
@@ -412,10 +418,9 @@ void ConsoleUI::handleFleetManagement()
         int seats;
         std::cout << "Aircraft ID: ";  std::cin >> id;
         std::cout << "Model: ";        std::cin >> model;
-        std::cout << "Total Seats: ";  std::cin >> seats;
 
         auto aircraft = std::make_shared<Aircraft>(
-            id, model, seats, true, std::vector<Maintenance>{}
+            id, model, 50, 6, true, std::vector<Maintenance>{}
         );
         system.addAircraftToFleet(aircraft);
     }
@@ -482,4 +487,98 @@ void ConsoleUI::handleCrewAssignment()
     }
 
     system.assignCrewToFlight(flightNum, found);
+}
+
+
+void ConsoleUI::handleUserManagement()
+{
+    int choice;
+    std::cout << "\n--- USER MANAGEMENT ---" << std::endl;
+    std::cout << "1. Create New User\n"
+              << "2. Update User\n"
+              << "3. Delete User\n"
+              << "4. Back" << std::endl;
+    std::cin >> choice;
+
+    if (choice == 1)
+    {
+        this->handleRegistration(); 
+    }
+    else if (choice == 2)
+    {
+        std::string username, fullName, phone, email, password;
+        std::cout << "Enter username to update: "; std::cin >> username;
+        if (!system.usernameExists(username))
+        {
+            std::cout << "[ERROR] User not found.\n";
+            return;
+        }
+        std::cout << "New Full Name: "; std::cin >> fullName;
+        std::cout << "New Phone: ";     std::cin >> phone;
+        std::cout << "New Email: ";     std::cin >> email;
+        std::cout << "New Password: ";  std::cin >> password;
+
+        if (system.updateUser(username, fullName, phone, email, password))
+            std::cout << "[SUCCESS] User updated.\n";
+        else
+            std::cout << "[ERROR] Update failed.\n";
+    }
+    else if (choice == 3)
+    {
+        std::string username;
+        std::cout << "Enter username to delete: "; std::cin >> username;
+
+        if (system.deleteUser(username))
+            std::cout << "[SUCCESS] User deleted.\n";
+        else
+            std::cout << "[ERROR] User not found.\n";
+    }
+}
+
+//exact same function as handleRegisteration but does not log u in automatically.
+void ConsoleUI::handleCreateUser() {
+    std::string username, password, fullName;
+    int roleChoice;
+
+    std::cout << "\n=============================================\n";
+    std::cout << "            REGISTRATING A  User              \n";
+    std::cout << "=============================================\n";
+    
+    std::cout << "Enter a New Username: \n";
+    std::cin >> username;
+    if (system.usernameExists(username)) {
+        std::cout << "\n[ERROR] Username '" << username << "' is already taken. Registration aborted.\n";
+        return;
+    }
+    
+    std::cout << "Enter a New Password: \n";
+    std::cin >> password;
+    
+    std::cout << "Enter Your Full Name: \n";
+    std::cin.ignore(); 
+    std::getline(std::cin, fullName);
+
+    std::cout << "Select Role (1: Passenger, 2: Booking Agent, 3: Admin): \n";
+    std::cin >> roleChoice;
+
+    std::shared_ptr<User> newUser = nullptr;
+
+    if (roleChoice == 1) 
+    {
+        newUser = std::make_shared<Passenger>(0, username, password, fullName, "N/A", "N/A", "N/A");
+    } 
+    else if (roleChoice == 2) 
+    {
+        newUser = std::make_shared<BookingAdmin>(0, username, password, fullName, "N/A", "N/A");
+    } 
+    else if (roleChoice == 3) 
+    {
+        newUser = std::make_shared<Administrators>(0, username, password, fullName, "N/A", "N/A");
+    } 
+    else 
+    {
+        std::cout << "\n[ERROR] Invalid role selection. Registration aborted.\n";
+        return; 
+    }
+
 }

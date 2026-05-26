@@ -6,7 +6,7 @@
 class User
 {
 protected:
-    int userid;
+    int userid; // won't be used in the project since Username is unique but easier to remmember
     std::string username;
     std::string password;
     std::string full_name;

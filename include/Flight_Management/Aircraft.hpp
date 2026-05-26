@@ -9,6 +9,8 @@ class Aircraft
     std:: string aircraftID;
     std::string model;
     int totalSeats;
+    int rows;
+    int columnsPerRow;
     bool isAvailable;//available to flights or not fot some reason
     std::vector<Maintenance> maintenanceHistory;
 
@@ -18,6 +20,8 @@ class Aircraft
     Aircraft(std:: string aircraftID, std::string model,int totalSeats,
         bool isAvailable,std::vector<Maintenance> maintenanceHistory);
 
+    Aircraft(std::string aircraftID, std::string model, int rows, int columnsPerRow,
+                   bool isAvailable, std::vector<Maintenance> maintenanceHistory);
     Aircraft(const Aircraft& other);
     Aircraft& operator=(const Aircraft& other);
     ~Aircraft();
@@ -26,12 +30,16 @@ class Aircraft
     std::string getAircraftID() const;
     std::string getModel() const;
     int getTotalSeats() const;
+    int getRows() const;
+    int getColumnsPerRow() const;
     bool getIsAvailable() const;
     std::vector<Maintenance> getMaintenanceHistory() const;
 
     void setAircraftID(const std::string& id);
     void setModel(const std::string& mdl);
     void setTotalSeats(int seats);
+    void setRows(int rows);
+    void setColumnsPerRow(int cols);
     void setIsAvailable(bool available);
     void setMaintenanceHistory(const std::vector<Maintenance>& history);
 

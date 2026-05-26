@@ -13,6 +13,17 @@ Aircraft::Aircraft(std::string aircraftID, std::string model, int totalSeats,
       maintenanceHistory(maintenanceHistory)
 {}
 
+Aircraft::Aircraft(std::string aircraftID, std::string model, int rows, int columnsPerRow,
+                   bool isAvailable, std::vector<Maintenance> maintenanceHistory)
+    : aircraftID(aircraftID),
+      model(model),
+      totalSeats(rows * columnsPerRow),
+      rows(rows),
+      columnsPerRow(columnsPerRow),
+      isAvailable(isAvailable),
+      maintenanceHistory(maintenanceHistory)
+{}
+
 
 Aircraft::Aircraft(const Aircraft& other)
 {
@@ -58,6 +69,15 @@ int Aircraft::getTotalSeats() const
     return this->totalSeats;
 }
 
+int Aircraft::getRows() const 
+{
+    return this->rows;
+}
+int Aircraft::getColumnsPerRow() const 
+{
+    return this->columnsPerRow;
+}
+
 bool Aircraft::getIsAvailable() const 
 {
     return this->isAvailable;
@@ -83,6 +103,21 @@ void Aircraft::setTotalSeats(int seats)
     if (seats > 0) 
     {
         this->totalSeats = seats;
+    }
+}
+
+void Aircraft::setRows(int rows) 
+{
+    if (rows > 0) 
+    {
+        this->rows = rows;
+    }
+}
+void Aircraft::setColumnsPerRow(int cols) 
+{
+    if (cols > 0) 
+    {
+        this->columnsPerRow = cols;
     }
 }
 
@@ -112,6 +147,8 @@ void Aircraft::displayAircraftSpecs() const
     std::cout << "Aircraft ID:    " << this->aircraftID << std::endl;
     std::cout << "Model:          " << this->model << std::endl;
     std::cout << "Total Seats:    " << this->totalSeats << std::endl;
+    std::cout << "Rows:           " << this->rows << std::endl;
+    std::cout << "Columns per Row: " << this->columnsPerRow << std::endl;
     std::cout << "Operational Status: " << (this->isAvailable ? "Available" : "Grounded") << std::endl;
 }
 

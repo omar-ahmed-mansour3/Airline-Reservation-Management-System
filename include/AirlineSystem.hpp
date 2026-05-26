@@ -28,10 +28,10 @@ public:
         (std::shared_ptr<User> user, std::shared_ptr<Flight> flight, std::string seatNum, PaymentMethod method);
 
 // =====================================================================
-//            FLIGHT & AIRCRAFT & CREW MANAGEMENT (Admin Services)
+//            FLIGHT & AIRCRAFT & CREW & User MANAGEMENT (Admin Services)
 // =====================================================================
 
-    //**************Aircrafts 
+    //**************Aircrafts******************************** 
     std::shared_ptr<Aircraft> getAircraftByID(std::string aircraftID) const;
 
     void addAircraftToFleet(std::shared_ptr<Aircraft> aircraft);
@@ -39,7 +39,7 @@ public:
     void scheduleMaintenance(std::string aircraftID, const Maintenance& newLog);// only by admins
     void removeAircraft(std::string aircraftID);
 
-    //*************flights
+    //*************flights*********************************************/
     std::shared_ptr<Flight> getFlightByNumber(std::string flightNum) const;
     std::vector<std::shared_ptr<Flight>> searchAvailableFlights
             (std::string origin, std::string dest, std::string date) const;
@@ -50,9 +50,17 @@ public:
     void updateFlightDetails
     (std::string flightNum, std::string newOrigin, std::string newDest, std::string newTime, double newPrice);
 
-    //******CREW */
+    //**********************CREW*******************************/
     void assignCrewToFlight(std::string flightNum, std::shared_ptr<CrewMember> crew);
     std::vector<std::shared_ptr<CrewMember>> getCrewByRole(std::string role) const ;
+
+    /***********************USER************************************/
+    bool deleteUser(const std::string& username);
+
+    bool updateUser(const std::string& username, const std::string& newFullName,
+                const std::string& newPhone, const std::string& newEmail,
+                const std::string& newPassword);
+
 };
 
 

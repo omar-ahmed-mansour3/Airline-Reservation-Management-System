@@ -1,7 +1,8 @@
 #include "Flight.hpp"
 
 
-
+//note: while functions here do not hardcode the number of seats, due to time contraints they will 
+//be hardcoded in the UI/ AirlineSystem (┬┬﹏┬┬)
 
 //**********rule of 5***************** */
     //if u have seat map ready

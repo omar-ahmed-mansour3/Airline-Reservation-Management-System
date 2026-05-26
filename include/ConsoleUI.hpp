@@ -27,7 +27,8 @@ private:
 void handleFlightManagement();
 void handleFleetManagement();
 void handleCrewAssignment();
-
+void handleUserManagement();
+void handleCreateUser();
 
 public:
 
