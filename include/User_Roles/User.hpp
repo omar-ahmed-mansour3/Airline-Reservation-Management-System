@@ -7,6 +7,7 @@ class User
 {
 protected:
     int userid; // won't be used in the project since Username is unique but easier to remmember
+                // will be hardcoded with 0 in functions calling the constructor
     std::string username;
     std::string password;
     std::string full_name;

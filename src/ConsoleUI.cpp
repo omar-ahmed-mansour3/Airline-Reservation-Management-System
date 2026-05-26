@@ -78,7 +78,8 @@ void ConsoleUI:: displayMainMenu()
             std::cout << "Please select an option (1-3): ";
 }
 
-void ConsoleUI::handleLogin() {
+void ConsoleUI::handleLogin() 
+{
     std::string username, password;
 
     std::cout << "\n=============================================\n";
@@ -101,30 +102,11 @@ void ConsoleUI::handleLogin() {
     std::cout << "\n[SUCCESS] Welcome back, " << loggedInUser->getFullName() << "!\n";
 
 
-    std::string role = this->loggedInUser->getRole();
-
-         
-    if (role == "Administrators") 
-    {
-        this->displayAdminMenu();
-    } 
-    else if (role == "BookingAdmin") 
-    {
-        this->displayBookingAgentMenu();
-    } 
-    else if (role == "Passenger")
-    {
-        this->displayPassengerMenu();
-    }
-    else 
-    {
-        std::cout << "\n[ERROR] Unknown user role detected. Forcing logout." << std::endl;
-        this->loggedInUser = nullptr;
-    }
 }
 
-void ConsoleUI::handleRegistration() {
-    std::string username, password, fullName, phone, email;
+void ConsoleUI::handleRegistration() 
+{
+    std::string username, password, fullName, phone, email, passport;
     int roleChoice;
 
     std::cout << "\n=============================================\n";
@@ -145,18 +127,21 @@ void ConsoleUI::handleRegistration() {
     std::cin.ignore(); 
     std::getline(std::cin, fullName);
 
-    std::cout << "Select Role (1: Passenger, 2: Booking Agent, 3: Admin): \n";
-    std::cin >> roleChoice;
     std::cout<<"Enter Phone Number: \n";
     std::cin>> phone;
     std::cout<<"Enter Email: \n";
     std::cin>> email;
 
+    std::cout << "Select Role (1: Passenger, 2: Booking Agent, 3: Admin): \n";
+    std::cin >> roleChoice;
+
     std::shared_ptr<User> newUser = nullptr;
 
     if (roleChoice == 1) 
     {
-        newUser = std::make_shared<Passenger>(0, username, password, fullName, phone, email, "N/A");
+        std::cout << "Enter Passport Number: \n";
+        std::cin >> passport;
+        newUser = std::make_shared<Passenger>(0, username, password, fullName, phone, email, passport);
     } 
     else if (roleChoice == 2) 
     {
@@ -179,25 +164,6 @@ void ConsoleUI::handleRegistration() {
 
     std::cout << "\n[SUCCESS] Registration complete! Welcome, " << loggedInUser->getFullName() << "!\n";
 
-
-    std::string role = this->loggedInUser->getRole();
-    if (role == "Administrators") 
-    {
-        this->displayAdminMenu();
-    } 
-    else if (role == "BookingAdmin") 
-    {
-        this->displayBookingAgentMenu();
-    } 
-    else if (role == "Passenger")
-    {
-        this->displayPassengerMenu();
-    }
-    else 
-    {
-        std::cout << "\n[ERROR] Unknown user role detected. Forcing logout." << std::endl;
-        this->loggedInUser = nullptr;
-    }
 }
 
 
@@ -502,7 +468,7 @@ void ConsoleUI::handleUserManagement()
 
     if (choice == 1)
     {
-        this->handleRegistration(); 
+        this->handleCreateUser(); 
     }
     else if (choice == 2)
     {
@@ -536,8 +502,9 @@ void ConsoleUI::handleUserManagement()
 }
 
 //exact same function as handleRegisteration but does not log u in automatically.
-void ConsoleUI::handleCreateUser() {
-    std::string username, password, fullName;
+void ConsoleUI::handleCreateUser() 
+{
+    std::string username, password, fullName , phone, email;
     int roleChoice;
 
     std::cout << "\n=============================================\n";
@@ -554,9 +521,15 @@ void ConsoleUI::handleCreateUser() {
     std::cout << "Enter a New Password: \n";
     std::cin >> password;
     
-    std::cout << "Enter Your Full Name: \n";
+    std::cout << "Enter Full Name: \n";
     std::cin.ignore(); 
     std::getline(std::cin, fullName);
+    
+    std::cout << "Enter Phone Number: \n";
+    std::cin >> phone;
+    
+    std::cout << "Enter Email: \n";
+    std::cin >> email;
 
     std::cout << "Select Role (1: Passenger, 2: Booking Agent, 3: Admin): \n";
     std::cin >> roleChoice;
@@ -565,15 +538,15 @@ void ConsoleUI::handleCreateUser() {
 
     if (roleChoice == 1) 
     {
-        newUser = std::make_shared<Passenger>(0, username, password, fullName, "N/A", "N/A", "N/A");
+        newUser = std::make_shared<Passenger>(0, username, password, fullName, phone, email, "N/A");
     } 
     else if (roleChoice == 2) 
     {
-        newUser = std::make_shared<BookingAdmin>(0, username, password, fullName, "N/A", "N/A");
+        newUser = std::make_shared<BookingAdmin>(0, username, password, fullName, phone, email);
     } 
     else if (roleChoice == 3) 
     {
-        newUser = std::make_shared<Administrators>(0, username, password, fullName, "N/A", "N/A");
+        newUser = std::make_shared<Administrators>(0, username, password, fullName, phone, email);
     } 
     else 
     {
@@ -581,4 +554,8 @@ void ConsoleUI::handleCreateUser() {
         return; 
     }
 
+    system.registerNewUser(newUser);
+    std::cout << "\n[SUCCESS] User '" << newUser->getFullName() << "' created successfully.\n";
+
 }
+

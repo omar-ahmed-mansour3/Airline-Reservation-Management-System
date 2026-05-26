@@ -2,7 +2,7 @@
 
 int main()
 {
-    std::cout << "2\n";
+    std::cout << "5\n";
     AirlineSystem system;
     ConsoleUI ui(system);
     ui.startApp();
