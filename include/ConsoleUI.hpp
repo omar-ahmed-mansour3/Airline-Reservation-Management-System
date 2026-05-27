@@ -7,6 +7,7 @@
 #include "Flight.hpp"
 #include "Aircraft.hpp"
 #include "Maintenance.hpp"
+#include <limits>
 
 class ConsoleUI {
 private:

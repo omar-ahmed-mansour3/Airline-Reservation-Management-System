@@ -13,6 +13,8 @@
 #include"FlightAttendant.hpp"
 #include"Pilot.hpp"
 #include <algorithm>
+#include "json.hpp"
+#include <fstream>
 class AirlineSystem
 {
 private:
@@ -25,6 +27,9 @@ private:
 public:
     AirlineSystem();
     ~AirlineSystem();
+
+    void saveData() const;
+    void loadData();
 
 
     void seedMockData();

@@ -1,0 +1,206 @@
+{
+    "crew": [
+        {
+            "aircraftModel": "Boeing 737",
+            "currentHours": 0.0,
+            "employeeID": "P-01",
+            "licenseNumber": "LIC-9988",
+            "maxHours": 120.0,
+            "name": "Captain Ahmed",
+            "role": "Pilot"
+        },
+        {
+            "currentHours": 0.0,
+            "employeeID": "FA-01",
+            "languages": [
+                "English",
+                "Arabic"
+            ],
+            "maxHours": 80.0,
+            "name": "Sarah Mansour",
+            "role": "Flight Attendant"
+        }
+    ],
+    "fleet": [
+        {
+            "aircraftID": "FLEET-737",
+            "isAvailable": true,
+            "maintenanceHistory": [],
+            "model": "Boeing 737",
+            "totalSeats": 120
+        },
+        {
+            "aircraftID": "FLEET-320",
+            "isAvailable": true,
+            "maintenanceHistory": [],
+            "model": "Airbus A320",
+            "totalSeats": 150
+        }
+    ],
+    "flights": [
+        {
+            "aircraftID": "FLEET-737",
+            "cols": 4,
+            "crewIDs": [
+                "P-01",
+                "FA-01"
+            ],
+            "departureTime": "14:00",
+            "destination": "Dubai",
+            "flightNumber": "MS-101",
+            "hoursFlying": 3.5,
+            "origin": "Cairo",
+            "price": 350.0,
+            "rows": 5,
+            "seatMap": [
+                [
+                    "X",
+                    "O",
+                    "O",
+                    "O"
+                ],
+                [
+                    "O",
+                    "O",
+                    "O",
+                    "O"
+                ],
+                [
+                    "O",
+                    "O",
+                    "O",
+                    "O"
+                ],
+                [
+                    "O",
+                    "O",
+                    "O",
+                    "O"
+                ],
+                [
+                    "O",
+                    "O",
+                    "O",
+                    "O"
+                ]
+            ],
+            "status": 0
+        },
+        {
+            "aircraftID": "FLEET-320",
+            "cols": 6,
+            "crewIDs": [
+                "P-01",
+                "FA-01"
+            ],
+            "departureTime": "09:30",
+            "destination": "London",
+            "flightNumber": "MS-202",
+            "hoursFlying": 5.0,
+            "origin": "Cairo",
+            "price": 650.0,
+            "rows": 6,
+            "seatMap": [
+                [
+                    "O",
+                    "O",
+                    "O",
+                    "O",
+                    "O",
+                    "O"
+                ],
+                [
+                    "O",
+                    "O",
+                    "O",
+                    "O",
+                    "O",
+                    "O"
+                ],
+                [
+                    "O",
+                    "O",
+                    "O",
+                    "O",
+                    "O",
+                    "O"
+                ],
+                [
+                    "O",
+                    "O",
+                    "O",
+                    "O",
+                    "O",
+                    "O"
+                ],
+                [
+                    "O",
+                    "O",
+                    "O",
+                    "O",
+                    "O",
+                    "O"
+                ],
+                [
+                    "O",
+                    "O",
+                    "O",
+                    "O",
+                    "O",
+                    "O"
+                ]
+            ],
+            "status": 0
+        }
+    ],
+    "reservations": [
+        {
+            "bookingId": "PNR-00001",
+            "flightNumber": "MS-101",
+            "isCheckedIn": false,
+            "passengerUsername": "passenger",
+            "payment": {
+                "amount": 350.0,
+                "method": 0,
+                "status": 1,
+                "timestamp": "2024-10-31 10:00",
+                "transactionID": "TXN-0001"
+            },
+            "seatNumber": "01A",
+            "status": 0
+        }
+    ],
+    "users": [
+        {
+            "email": "admin@airline.com",
+            "full_name": "Omar Ahmed",
+            "password": "admin123",
+            "phone": "0100",
+            "role": "Administrators",
+            "userid": 1,
+            "username": "admin"
+        },
+        {
+            "email": "john@mail.com",
+            "full_name": "John Doe",
+            "loyaltyPoints": 0,
+            "mealPreference": "Standard",
+            "passport": "A112233",
+            "password": "pass123",
+            "phone": "0111",
+            "role": "Passenger",
+            "seatPreference": "Window",
+            "userid": 2,
+            "username": "passenger"
+        },
+        {
+            "email": "etgbv",
+            "full_name": "rtgv",
+            "password": "123",
+            "phone": "etv",
+            "role": "Administrators",
+            "userid": 0,
+            "username": "omar3"
+        }
+    ]
+}

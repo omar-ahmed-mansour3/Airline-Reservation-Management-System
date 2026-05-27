@@ -760,3 +760,331 @@ bool AirlineSystem::checkInPassenger(const std::string& bookingId)
 }
 
 
+//******************file I/O methods******************/
+
+void AirlineSystem::saveData() const
+{
+    nlohmann::json root;
+
+    //****USERS 
+    nlohmann::json usersArray = nlohmann::json::array();
+    for (const auto& user : this->userRegistry)
+    {
+        nlohmann::json u;
+        u["userid"]    = user->get_userid();
+        u["username"]  = user->get_username();
+        u["password"]  = user->get_password();
+        u["full_name"] = user->getFullName();
+        u["phone"]     = user->get_Phone();
+        u["email"]     = user->get_email();
+        u["role"]      = user->getRole();
+
+        // passenger-specific fields
+        if (user->getRole() == "Passenger")
+        {
+            auto p = std::dynamic_pointer_cast<Passenger>(user);
+            u["loyaltyPoints"]  = p->getLoyaltyPoints();
+            u["passport"]       = p->getPassport();
+            u["seatPreference"] = p->getSeatPreference();
+            u["mealPreference"] = p->getMealPreference();
+        }
+        usersArray.push_back(u);
+    }
+    root["users"] = usersArray;
+
+    //** CREW 
+    nlohmann::json crewArray = nlohmann::json::array();
+    for (const auto& member : this->crewRegistry)
+    {
+        nlohmann::json c;
+        c["employeeID"]        = member->getEmployeeID();
+        c["name"]              = member->getName();
+        c["currentHours"]      = member->getCurrentFlightHours();
+        c["maxHours"]          = member->getMaxAllowedHours();
+        c["role"]              = member->getStaffRole();
+
+        if (member->getStaffRole() == "Pilot")
+        {
+            auto pilot = std::dynamic_pointer_cast<Pilot>(member);
+            c["licenseNumber"]  = pilot->getLicenseNumber();
+            c["aircraftModel"]  = pilot->getAircraftModel();
+        }
+        else if (member->getStaffRole() == "Flight Attendant")
+        {
+            auto fa = std::dynamic_pointer_cast<FlightAttendant>(member);
+            c["languages"] = fa->getLanguagesSpoken();
+        }
+        crewArray.push_back(c);
+    }
+    root["crew"] = crewArray;
+
+    //*****AIRCRAFT
+    nlohmann::json fleetArray = nlohmann::json::array();
+    for (const auto& plane : this->fleetRegistry)
+    {
+        nlohmann::json a;
+        a["aircraftID"]   = plane->getAircraftID();
+        a["model"]        = plane->getModel();
+        a["totalSeats"]   = plane->getTotalSeats();
+        a["isAvailable"]  = plane->getIsAvailable();
+
+        nlohmann::json logsArray = nlohmann::json::array();
+        for (const auto& log : plane->getMaintenanceHistory())
+        {
+            nlohmann::json m;
+            m["maintenanceID"]   = log.getMaintenanceID();
+            m["scheduleDate"]    = log.getScheduleDate();
+            m["completionDate"]  = log.getCompletionDate();
+            m["description"]     = log.getDescription();
+            m["status"]          = static_cast<int>(log.getStatus());
+            logsArray.push_back(m);
+        }
+        a["maintenanceHistory"] = logsArray;
+        fleetArray.push_back(a);
+    }
+    root["fleet"] = fleetArray;
+
+    // **** FLIGHTS ****
+    nlohmann::json flightsArray = nlohmann::json::array();
+    for (const auto& flight : this->flightSchedule)
+    {
+        nlohmann::json f;
+        f["flightNumber"]   = flight->getFlightNumber();
+        f["origin"]         = flight->getOrigin();
+        f["destination"]    = flight->getDestination();
+        f["departureTime"]  = flight->getDepartureTime();
+        f["price"]          = flight->getPrice();
+        f["hoursFlying"]    = flight->gethoursFlying();
+        f["status"]         = static_cast<int>(flight->getFlightStatus());
+        f["rows"]           = flight->getRows();
+        f["cols"]           = flight->getColumnsPerRow();
+
+        // save aircraft ID to re-link on load
+        if (flight->getAssignedAircraft() != nullptr)
+            f["aircraftID"] = flight->getAssignedAircraft()->getAircraftID();
+        else
+            f["aircraftID"] = "";
+
+        // save crew IDs to re-link on load
+        nlohmann::json crewIDs = nlohmann::json::array();
+        for (const auto& member : flight->getAssignedCrew())
+            crewIDs.push_back(member->getEmployeeID());
+        f["crewIDs"] = crewIDs;
+
+        // save seat map
+        f["seatMap"] = flight->getSeatMap();
+
+        flightsArray.push_back(f);
+    }
+    root["flights"] = flightsArray;
+
+    // **** RESERVATIONS ****
+    nlohmann::json resArray = nlohmann::json::array();
+    for (const auto& res : this->activeReservations)
+    {
+        nlohmann::json r;
+        r["bookingId"]        = res->getBookingId();
+        r["seatNumber"]       = res->getSeatNumber();
+        r["passengerUsername"] = res->getPassenger()->get_username();
+        r["flightNumber"]     = res->getFlight()->getFlightNumber();
+        r["status"]           = static_cast<int>(res->getBookingStatus());
+        r["isCheckedIn"]      = res->getIsCheckedIn();
+
+        if (res->getPayment() != nullptr)
+        {
+            r["payment"]["transactionID"] = res->getPayment()->getTransactionID();
+            r["payment"]["amount"]        = res->getPayment()->getAmount();
+            r["payment"]["method"]        = static_cast<int>(res->getPayment()->getMethod());
+            r["payment"]["status"]        = static_cast<int>(res->getPayment()->getStatus());
+            r["payment"]["timestamp"]     = res->getPayment()->getTimestamp();
+        }
+        resArray.push_back(r);
+    }
+    root["reservations"] = resArray;
+
+    // *****WRITE TO FILE 
+    std::ofstream file("data/airline_data.json");
+    if (file.is_open())
+    {
+        file << root.dump(4); // 4 = indentation spaces
+        file.close();
+        std::cout << "[SYSTEM] Data saved successfully.\n";
+    }
+    else
+    {
+        std::cout << "[ERROR] Could not open data file for saving.\n";
+    }
+}
+
+
+
+void AirlineSystem::loadData()
+{
+    std::ifstream file("data/airline_data.json");
+    if (!file.is_open())
+    {
+        std::cout << "[SYSTEM] No saved data found. Starting fresh.\n";
+        return;
+    }
+
+    nlohmann::json root;
+    try { file >> root; }
+    catch (...) 
+    { 
+        std::cout << "[ERROR] Failed to parse saved data.\n"; 
+        return; 
+    }
+    file.close();
+
+    
+    for (const auto& u : root["users"])
+    {
+        std::string role = u["role"];
+        std::shared_ptr<User> user = nullptr;
+
+        if (role == "Passenger")
+        {
+            auto p = std::make_shared<Passenger>(
+                u["userid"], u["username"], u["password"],
+                u["full_name"], u["phone"], u["email"],
+                u["passport"], u["seatPreference"], u["mealPreference"]
+            );
+            p->setLoyaltyPoints(u.value("loyaltyPoints", 0));
+            user = p;
+        }
+        else if (role == "BookingAdmin")
+        {
+            user = std::make_shared<BookingAdmin>(
+                u["userid"], u["username"], u["password"],
+                u["full_name"], u["phone"], u["email"]
+            );
+        }
+        else if (role == "Administrators")
+        {
+            user = std::make_shared<Administrators>(
+                u["userid"], u["username"], u["password"],
+                u["full_name"], u["phone"], u["email"]
+            );
+        }
+
+        if (user != nullptr)
+            this->userRegistry.push_back(user);
+    }
+
+
+    for (const auto& c : root["crew"])
+    {
+        std::string role = c["role"];
+        std::shared_ptr<CrewMember> member = nullptr;
+
+        if (role == "Pilot")
+        {
+            member = std::make_shared<Pilot>(
+                c["employeeID"], c["name"], c["maxHours"],
+                c["licenseNumber"], c["aircraftModel"]
+            );
+        }
+        else if (role == "Flight Attendant")
+        {
+            std::vector<std::string> langs = c["languages"];
+            member = std::make_shared<FlightAttendant>(
+                c["employeeID"], c["name"], c["maxHours"], langs
+            );
+        }
+
+        if (member != nullptr)
+        {
+            member->setCurrentFlightHours(c["currentHours"]);
+            this->crewRegistry.push_back(member);
+        }
+    }
+
+   
+    for (const auto& a : root["fleet"])
+    {
+        std::vector<Maintenance> logs;
+        for (const auto& m : a["maintenanceHistory"])
+        {
+            Maintenance log(
+                m["maintenanceID"], m["scheduleDate"], m["completionDate"],
+                m["description"], static_cast<MaintenanceStatus>(m["status"].get<int>())
+            );
+            logs.push_back(log);
+        }
+
+        auto plane = std::make_shared<Aircraft>(
+            a["aircraftID"], a["model"], a["totalSeats"],
+            a["isAvailable"], logs
+        );
+        this->fleetRegistry.push_back(plane);
+    }
+
+    for (const auto& f : root["flights"])
+    {
+        // re-link aircraft by ID
+        std::shared_ptr<Aircraft> aircraft = nullptr;
+        std::string aircraftID = f["aircraftID"];
+        if (!aircraftID.empty())
+            aircraft = this->getAircraftByID(aircraftID);
+
+        // re-link crew by ID
+        std::vector<std::shared_ptr<CrewMember>> crew;
+        for (const auto& empID : f["crewIDs"])
+        {
+            for (const auto& member : this->crewRegistry)
+            {
+                if (member->getEmployeeID() == empID.get<std::string>())
+                {
+                    crew.push_back(member);
+                    break;
+                }
+            }
+        }
+
+        // restore seat map
+        std::vector<std::vector<std::string>> seatMap = f["seatMap"];
+
+        auto flight = std::make_shared<Flight>(
+            f["flightNumber"], f["origin"], f["destination"],
+            f["departureTime"], f["price"], f["hoursFlying"],
+            static_cast<FlightStatus>(f["status"].get<int>()),
+            aircraft, crew, seatMap
+        );
+        this->flightSchedule.push_back(flight);
+    }
+
+    for (const auto& r : root["reservations"])
+    {
+        // re-link user and flight by ID
+        auto user   = this->getUserByUsername(r["passengerUsername"]);
+        auto flight = this->getFlightByNumber(r["flightNumber"]);
+
+        if (user == nullptr || flight == nullptr) continue;
+
+        auto res = std::make_shared<Reservation>(
+            r["bookingId"], r["seatNumber"], user, flight,
+            static_cast<BookingStatus>(r["status"].get<int>())
+        );
+
+        // restore check-in
+        if (r["isCheckedIn"].get<bool>())
+            res->checkIn();
+
+        // restore payment
+        if (r.contains("payment"))
+        {
+            auto pay = std::make_shared<Payment>(
+                r["payment"]["transactionID"],
+                r["payment"]["amount"],
+                static_cast<PaymentMethod>(r["payment"]["method"].get<int>()),
+                r["payment"]["timestamp"]
+            );
+            pay->setStatus(static_cast<PaymentStatus>(r["payment"]["status"].get<int>()));
+            res->setPayment(pay);
+        }
+
+        this->activeReservations.push_back(res);
+    }
+
+    std::cout << "[SYSTEM] Data loaded successfully.\n";
+}

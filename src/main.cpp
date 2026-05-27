@@ -2,10 +2,14 @@
 
 int main()
 {
-    std::cout << "18\n";
+    std::cout << "20c\n";
+    
     AirlineSystem system;
+    system.loadData();
     system.seedMockData();
     ConsoleUI ui(system);
     ui.startApp();
+    system.saveData();  
+
     return 0;
 }

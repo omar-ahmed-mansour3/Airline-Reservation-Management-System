@@ -31,6 +31,12 @@ Passenger(int id, std::string uname, std::string pwd, std::string name,
     int getLoyaltyPoints() const;
     void addLoyaltyPoints(int points);
     void deductLoyaltyPoints(int points);
+    void setLoyaltyPoints(int points);
+    std::string getPassport() const;
+    std::string getSeatPreference() const;
+    std::string getMealPreference() const;
+
+
     //************overriden functions************* */
 
     void showProfile() const override;

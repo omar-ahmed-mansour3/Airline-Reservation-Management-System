@@ -54,6 +54,11 @@ void Passenger::deductLoyaltyPoints(int points)
 {
     this->loyaltyPoints -= points;
 }
+void Passenger::setLoyaltyPoints(int points) { this->loyaltyPoints = points; }
+
+std::string Passenger::getPassport() const { return this->passport; }
+std::string Passenger::getSeatPreference() const { return this->seatPreference; }
+std::string Passenger::getMealPreference() const { return this->mealPreference; }
 
 //************overriden functions************* */
 std::string Passenger:: getRole() const 
