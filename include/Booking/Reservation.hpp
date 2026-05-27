@@ -45,6 +45,8 @@ class Reservation
         bool getIsCheckedIn() const;
         bool checkIn();
 
+        void setIsCheckedIn(bool value);
+
     //************ Class Specific Functions ****************** */
         bool confirmReservation();
         void cancelReservation();

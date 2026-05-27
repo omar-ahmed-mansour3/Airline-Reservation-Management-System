@@ -78,6 +78,11 @@
         return this->bookingStatus;
     }
 
+    void Reservation::setIsCheckedIn(bool value) 
+    {
+         this->isCheckedIn = value;
+    }
+
 
 //************** Setters ************** */
 

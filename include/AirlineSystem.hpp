@@ -32,8 +32,6 @@ public:
     void loadData();
 
 
-    void seedMockData();
-
 /******************Authentication & User Services ***************/    
     std::shared_ptr<User> loginUser(std::string username, std::string password);
     void registerNewUser(std::shared_ptr<User> newUser);

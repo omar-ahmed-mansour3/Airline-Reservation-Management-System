@@ -60,7 +60,7 @@
                     "O"
                 ],
                 [
-                    "O",
+                    "X",
                     "O",
                     "O",
                     "O"
@@ -168,6 +168,36 @@
             },
             "seatNumber": "01A",
             "status": 0
+        },
+        {
+            "bookingId": "PNR-28467",
+            "flightNumber": "MS-101",
+            "isCheckedIn": false,
+            "passengerUsername": "omarpass1",
+            "payment": {
+                "amount": 350.0,
+                "method": 2,
+                "status": 1,
+                "timestamp": "2024-10-31 14:00",
+                "transactionID": "TXN-1041"
+            },
+            "seatNumber": "05D",
+            "status": 1
+        },
+        {
+            "bookingId": "PNR-36500",
+            "flightNumber": "MS-101",
+            "isCheckedIn": true,
+            "passengerUsername": "omarpass1",
+            "payment": {
+                "amount": 340.0,
+                "method": 3,
+                "status": 1,
+                "timestamp": "2024-10-31 14:00",
+                "transactionID": "TXN-7334"
+            },
+            "seatNumber": "02A",
+            "status": 0
         }
     ],
     "users": [
@@ -194,13 +224,26 @@
             "username": "passenger"
         },
         {
-            "email": "etgbv",
-            "full_name": "rtgv",
+            "email": "omar@gmail.com",
+            "full_name": "omar ahmed ali",
+            "loyaltyPoints": 0,
+            "mealPreference": "None",
+            "passport": "ps-01",
             "password": "123",
-            "phone": "etv",
-            "role": "Administrators",
+            "phone": "01275399958",
+            "role": "Passenger",
+            "seatPreference": "None",
             "userid": 0,
-            "username": "omar3"
+            "username": "omarpass1"
+        },
+        {
+            "email": "erbf",
+            "full_name": "omar ahmed",
+            "password": "123",
+            "phone": "123456",
+            "role": "BookingAdmin",
+            "userid": 0,
+            "username": "2"
         }
     ]
 }

@@ -5,67 +5,6 @@ AirlineSystem::AirlineSystem() {}
 AirlineSystem::~AirlineSystem() {}
 
 
-void AirlineSystem::seedMockData() {
-    // -----------------------------------------------------------------
-    // 1. SEED CREW MEMBERS (Polymorphic: Pilots & Attendants)
-    // -----------------------------------------------------------------
-    auto pilot1 = std::make_shared<Pilot>("P-01", "Captain Ahmed", 120.0, "LIC-9988", "Boeing 737");
-    auto attendant1 = std::make_shared<FlightAttendant>("FA-01", "Sarah Mansour", 80.0, std::vector<std::string>{"English", "Arabic"});
-    
-    this->crewRegistry.push_back(pilot1);
-    this->crewRegistry.push_back(attendant1);
-
-    // -----------------------------------------------------------------
-    // 2. SEED AIRCRAFT (The Fleet)
-    // -----------------------------------------------------------------
-    auto plane1 = std::make_shared<Aircraft>("FLEET-737", "Boeing 737", 120, true, std::vector<Maintenance>{});
-    auto plane2 = std::make_shared<Aircraft>("FLEET-320", "Airbus A320", 150, true, std::vector<Maintenance>{});
-    
-    this->fleetRegistry.push_back(plane1);
-    this->fleetRegistry.push_back(plane2);
-
-    // -----------------------------------------------------------------
-    // 3. SEED USERS (Polymorphic accounts for instant login tests)
-    // -----------------------------------------------------------------
-    // Format matches your constructor orders
-    auto testAdmin = std::make_shared<Administrators>(1, "admin", "admin123", "Omar Ahmed", "0100", "admin@airline.com");
-    auto testPassenger = std::make_shared<Passenger>(2, "passenger", "pass123", "John Doe", "0111", "john@mail.com", "A112233", "Window", "Standard");
-    
-    this->userRegistry.push_back(testAdmin);
-    this->userRegistry.push_back(testPassenger);
-
-    // -----------------------------------------------------------------
-    // 4. SEED FLIGHTS (Leveraging the smart pointers built above)
-    // -----------------------------------------------------------------
-    // Collect pointers to pass into the flight schedules
-    std::vector<std::shared_ptr<CrewMember>> sampleCrew = { pilot1, attendant1 };
-
-    // Flight 1: 5 rows, 4 columns per row seat map
-    // Note: If your FlightStatus enum uses different naming (e.g., Scheduled vs Active), adjust here
-    auto flight1 = std::make_shared<Flight>("MS-101", "Cairo", "Dubai", "14:00", 350.0, 3.5, FlightStatus::Scheduled, plane1, sampleCrew, 5, 4);
-    
-    // Flight 2: 6 rows, 6 columns per row seat map
-    auto flight2 = std::make_shared<Flight>("MS-202", "Cairo", "London", "09:30", 650.0, 5.0, FlightStatus::Scheduled, plane2, sampleCrew, 6, 6);
-
-    this->flightSchedule.push_back(flight1);
-    this->flightSchedule.push_back(flight2);
-    
-    std::cout << "[SYSTEM NOTICE] Seed data injected successfully into system memory.\n";
-
-    flight1->reserveSeat("01A"); // mark seat as taken in the seat map
-
-auto testPayment = std::make_shared<Payment>("TXN-0001", 350.0, CreditCard, "2024-10-31 10:00");
-testPayment->processPayment(); // sets status to Completed
-
-auto testReservation = std::make_shared<Reservation>(
-    "PNR-00001", "01A", testPassenger, flight1, BookingStatus::Confirmed
-);
-testReservation->setPayment(testPayment);
-this->activeReservations.push_back(testReservation);
-}
-
-
-
 static std::string toLower(const std::string& s)
 {
     std::string result = s;
@@ -760,6 +699,30 @@ bool AirlineSystem::checkInPassenger(const std::string& bookingId)
 }
 
 
+bool AirlineSystem::cancelUserReservation(const std::string& bookingId)
+{
+    for (const auto& res : this->activeReservations)
+    {
+        if (res->getBookingId() == bookingId)
+        {
+            res->cancelReservation(); // handles seat release and refund message
+
+            // deduct 1 loyalty point if user is a passenger
+            auto passenger = std::dynamic_pointer_cast<Passenger>(res->getPassenger());
+            if (passenger != nullptr && passenger->getLoyaltyPoints() > 0)
+            {
+                passenger->deductLoyaltyPoints(1);
+                std::cout << "[LOYALTY] -1 point deducted. Total points: " 
+                          << passenger->getLoyaltyPoints() << "\n";
+            }
+            return true;
+        }
+    }
+    std::cout << "[ERROR] Reservation not found.\n";
+    return false;
+}
+
+
 //******************file I/O methods******************/
 
 void AirlineSystem::saveData() const
@@ -1050,6 +1013,8 @@ void AirlineSystem::loadData()
             static_cast<FlightStatus>(f["status"].get<int>()),
             aircraft, crew, seatMap
         );
+        flight->setRows(f["rows"].get<int>());
+        flight->setcolPerRow(f["cols"].get<int>()); 
         this->flightSchedule.push_back(flight);
     }
 
@@ -1068,7 +1033,7 @@ void AirlineSystem::loadData()
 
         // restore check-in
         if (r["isCheckedIn"].get<bool>())
-            res->checkIn();
+            res->setIsCheckedIn(true);
 
         // restore payment
         if (r.contains("payment"))

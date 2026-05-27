@@ -4,6 +4,27 @@ ConsoleUI::ConsoleUI(AirlineSystem& sys)
     : system(sys), loggedInUser(nullptr) 
 {}
 
+static int getValidInt()
+{
+    int val;
+    while (!(std::cin >> val)) {
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        std::cout << "[ERROR] Invalid input. Please enter a number: ";
+    }
+    return val;
+}
+
+static double getValidDouble()
+{
+    double val;
+    while (!(std::cin >> val)) {
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        std::cout << "[ERROR] Invalid input. Please enter a number: ";
+    }
+    return val;
+}
 
 
 
@@ -23,7 +44,7 @@ void ConsoleUI::startApp()
         {
             this->displayMainMenu();
             
-            std::cin >> choice;
+            choice = getValidInt();
 
             switch (choice) 
             {
@@ -135,7 +156,7 @@ void ConsoleUI::handleRegistration()
     std::cin>> email;
 
     std::cout << "Select Role (1: Passenger, 2: Booking Agent, 3: Admin): \n";
-    std::cin >> roleChoice;
+    roleChoice = getValidInt();
 
     std::shared_ptr<User> newUser = nullptr;
 
@@ -187,7 +208,7 @@ void ConsoleUI::displayPassengerMenu()
                   << "5. Perform Online Check-In\n"
                   << "6. Logout" << std::endl;
         
-        std::cin >> choice;
+        choice = getValidInt();
 
         switch(choice)
         {
@@ -205,7 +226,7 @@ void ConsoleUI::displayPassengerMenu()
                 std::cout << "Date (leave blank to skip): ";        
                 std::getline(std::cin, date);
                 std::cout << "Max Price (0 to skip): ";             
-                std::cin >> maxPrice;
+                maxPrice = getValidDouble();
 
                 auto results = system.searchAvailableFlights(origin, dest, date, maxPrice);
                 for (const auto& flight : results)
@@ -253,7 +274,7 @@ void ConsoleUI::displayAdminMenu()
                   << "7. View Operational & Financial Reports\n"
                   << "8. Logout & Exit System" << std::endl; 
 
-        std::cin >> choice;
+        choice = getValidInt();
 
         switch (choice)
         {
@@ -306,7 +327,7 @@ void ConsoleUI::displayBookingAgentMenu()
                   << "5. Manage Airport Counter Check-In\n"
                   << "6. Logout" << std::endl;
                   
-        std::cin >> choice;
+        choice = getValidInt();
         
         switch(choice)
         {
@@ -324,7 +345,7 @@ void ConsoleUI::displayBookingAgentMenu()
                 std::cout << "Date (leave blank to skip): ";        
                 std::getline(std::cin, date);
                 std::cout << "Max Price (0 to skip): ";             
-                std::cin >> maxPrice;
+                maxPrice = getValidDouble();
 
                 auto results = system.searchAvailableFlights(origin, dest, date, maxPrice);
                 for (const auto& flight : results)
@@ -365,7 +386,7 @@ void ConsoleUI::handleFlightManagement()
               << "4. Remove Flight\n"
               << "5. Update Flight Status\n"
               << "6. Back" << std::endl;
-    std::cin >> choice;
+    choice = getValidInt();
 
     if (choice == 1)
     {
@@ -375,8 +396,8 @@ void ConsoleUI::handleFlightManagement()
         std::cout << "Origin: ";        std::cin >> origin;
         std::cout << "Destination: ";   std::cin >> dest;
         std::cout << "Departure Time: "; std::cin >> time;
-        std::cout << "Price: ";         std::cin >> price;
-        std::cout << "Hours Flying: ";  std::cin >> hours;
+        std::cout << "Price: ";         price = getValidDouble();
+        std::cout << "Hours Flying: ";  hours = getValidDouble();
 
         auto flight = std::make_shared<Flight>(
             num, origin, dest, time, price, hours,
@@ -394,7 +415,7 @@ void ConsoleUI::handleFlightManagement()
         std::cout << "New Origin: ";        std::cin >> origin;
         std::cout << "New Destination: ";   std::cin >> dest;
         std::cout << "New Departure Time: "; std::cin >> time;
-        std::cout << "New Price: ";         std::cin >> price;
+        std::cout << "New Price: ";         price = getValidDouble();
         system.updateFlightDetails(num, origin, dest, time, price);
     }
     else if (choice == 3)
@@ -428,7 +449,7 @@ void ConsoleUI::handleFlightManagement()
                   << "4. Canceled\n"
                   << "Choice: ";
         int statusChoice;
-        std::cin >> statusChoice;
+        statusChoice = getValidInt();
 
         FlightStatus newStatus;
         switch (statusChoice)
@@ -456,12 +477,11 @@ void ConsoleUI::handleFleetManagement()
               << "3. Schedule Maintenance\n"
               << "4. Remove Aircraft\n"
               << "5. Back" << std::endl;
-    std::cin >> choice;
+    choice = getValidInt();
 
     if (choice == 1)
     {
         std::string id, model;
-        int seats;
         std::cout << "Aircraft ID: ";  std::cin >> id;
         std::cout << "Model: ";        std::cin >> model;
 
@@ -475,7 +495,7 @@ void ConsoleUI::handleFleetManagement()
         std::string id;
         int avail;
         std::cout << "Aircraft ID: ";           std::cin >> id;
-        std::cout << "Available? (1=Yes, 0=No): "; std::cin >> avail;
+        std::cout << "Available? (1=Yes, 0=No): "; avail = getValidInt();
         system.updateAircraftAvailability(id, avail == 1);
     }
     else if (choice == 3)
@@ -544,7 +564,7 @@ void ConsoleUI::handleUserManagement()
               << "2. Update User\n"
               << "3. Delete User\n"
               << "4. Back" << std::endl;
-    std::cin >> choice;
+    choice = getValidInt();
 
     if (choice == 1)
     {
@@ -559,7 +579,9 @@ void ConsoleUI::handleUserManagement()
             std::cout << "[ERROR] User not found.\n";
             return;
         }
-        std::cout << "New Full Name: "; std::cin >> fullName;
+        std::cout << "New Full Name: ";
+        std::cin.ignore();
+        std::getline(std::cin, fullName);
         std::cout << "New Phone: ";     std::cin >> phone;
         std::cout << "New Email: ";     std::cin >> email;
         std::cout << "New Password: ";  std::cin >> password;
@@ -612,7 +634,7 @@ void ConsoleUI::handleCreateUser()
     std::cin >> email;
 
     std::cout << "Select Role (1: Passenger, 2: Booking Agent, 3: Admin): \n";
-    std::cin >> roleChoice;
+    roleChoice = getValidInt();
 
     std::shared_ptr<User> newUser = nullptr;
 
@@ -653,7 +675,7 @@ void ConsoleUI::handleMaintenanceManagement()
                   << "3. View Maintenance Logs\n"
                   << "4. Back\n"
                   << "Choice: ";
-        std::cin >> choice;
+        choice = getValidInt();
 
         if (choice == 1)
         {
@@ -769,7 +791,7 @@ void ConsoleUI::handleFlightBooking()
               << "5. Cash\n"
               << "Choice: ";
     int payChoice;
-    std::cin >> payChoice;
+    payChoice = getValidInt();
 
     PaymentMethod method;
     switch (payChoice)
@@ -791,35 +813,13 @@ void ConsoleUI::handleFlightBooking()
         std::cout << "\nYou have " << passenger->getLoyaltyPoints()
                   << " loyalty points (each worth $10 off).\n";
         std::cout << "How many points to redeem? (0 to skip): ";
-        std::cin >> loyaltyPointsToUse;
+        loyaltyPointsToUse = getValidInt();
     }
 
     system.processNewBooking(bookingUser, flight, seat, method, loyaltyPointsToUse);
 }
 
 
-bool AirlineSystem::cancelUserReservation(const std::string& bookingId)
-{
-    for (const auto& res : this->activeReservations)
-    {
-        if (res->getBookingId() == bookingId)
-        {
-            res->cancelReservation(); // handles seat release and refund message
-
-            // deduct 1 loyalty point if user is a passenger
-            auto passenger = std::dynamic_pointer_cast<Passenger>(res->getPassenger());
-            if (passenger != nullptr && passenger->getLoyaltyPoints() > 0)
-            {
-                passenger->deductLoyaltyPoints(1);
-                std::cout << "[LOYALTY] -1 point deducted. Total points: " 
-                          << passenger->getLoyaltyPoints() << "\n";
-            }
-            return true;
-        }
-    }
-    std::cout << "[ERROR] Reservation not found.\n";
-    return false;
-}
 
 void ConsoleUI::handleBookingManagement()
 {
@@ -843,7 +843,7 @@ void ConsoleUI::handleBookingManagement()
 
     std::cout << "Enter reservation number (0 to go back): ";
     int pick;
-    std::cin >> pick;
+    pick = getValidInt();
 
     if (pick == 0) return;
 
@@ -860,7 +860,7 @@ void ConsoleUI::handleBookingManagement()
               << "3. Back\n"
               << "Choice: ";
     int choice;
-    std::cin >> choice;
+    choice = getValidInt();
 
     if (choice == 1)
     {
@@ -962,7 +962,7 @@ void ConsoleUI::handleCheckIn()
 
     std::cout << "Select reservation number to check in (0 to go back): ";
     int selection;
-    std::cin >> selection;
+    selection = getValidInt();
     if (selection == 0) return;
 
     if (selection < 1 || selection > reservations.size())
@@ -994,7 +994,7 @@ void ConsoleUI::handleReports()
                   << "3. Flight Report\n"
                   << "4. Back\n"
                   << "Choice: ";
-        std::cin >> choice;
+        choice = getValidInt();
 
         switch (choice)
         {

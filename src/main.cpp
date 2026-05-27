@@ -2,11 +2,9 @@
 
 int main()
 {
-    std::cout << "20c\n";
-    
+    std::cout<<"welcome to the airline reservation system\n";
     AirlineSystem system;
     system.loadData();
-    system.seedMockData();
     ConsoleUI ui(system);
     ui.startApp();
     system.saveData();  
